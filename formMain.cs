@@ -11,15 +11,17 @@ namespace Nahravadlo
 {
 	public partial class formMain : Form
 	{
-		private string vlc;
-		private string defaultDirectory;
+		public static string vlc;
+		public static string defaultDirectory;
 		private string username;
 		private string password;
-		private bool useMpegTS = false;
+		public static bool useMpegTS = false;
+		public static ComboBox comboChannels;
 
 		public formMain()
 		{
 			InitializeComponent();
+			comboChannels = cmbProgram;
 		}
 
 		private void Form1_Load(object sender, EventArgs e)
@@ -185,7 +187,7 @@ namespace Nahravadlo
 				}
 				if (!File.Exists(vlc))
 				{
-					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", this.vlc));
+					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", vlc));
 				}
 				if (objRootXmlElement.SelectSingleNode("config/login/username") != null)
 					username = objRootXmlElement.SelectSingleNode("config/login/username").InnerText;
@@ -260,8 +262,8 @@ namespace Nahravadlo
 			dialog.OverwritePrompt = true;
 			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
 			dialog.ValidateNames = true;
-			dialog.ShowDialog();
-			txtFilename.Text = dialog.FileName;
+			if (dialog.ShowDialog() == DialogResult.OK) 
+				txtFilename.Text = dialog.FileName;
 		}
 
 		private void cmdSave_Click(object sender, EventArgs e)
@@ -437,6 +439,13 @@ namespace Nahravadlo
 				}
 			}
 			st.Dispose();
+		}
+
+		private void recordNowToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			formRecordNow f;
+			f = new formRecordNow();
+			f.ShowDialog();
 		}
 	}
 

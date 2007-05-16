@@ -52,6 +52,7 @@ namespace Nahravadlo
 			this.dialog = new System.Windows.Forms.SaveFileDialog();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.optionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.recordNowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.timer = new System.Windows.Forms.Timer(this.components);
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize) (this.numLength)).BeginInit();
@@ -206,7 +207,8 @@ namespace Nahravadlo
 			// menuStrip1
 			// 
 			this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.optionMenuItem});
+            this.optionMenuItem,
+            this.recordNowToolStripMenuItem});
 			resources.ApplyResources(this.menuStrip1, "menuStrip1");
 			this.menuStrip1.Name = "menuStrip1";
 			// 
@@ -216,6 +218,13 @@ namespace Nahravadlo
 			this.optionMenuItem.Name = "optionMenuItem";
 			resources.ApplyResources(this.optionMenuItem, "optionMenuItem");
 			this.optionMenuItem.Click += new System.EventHandler(this.optionMenuItem_Click);
+			// 
+			// recordNowToolStripMenuItem
+			// 
+			this.recordNowToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.recordNowToolStripMenuItem.Name = "recordNowToolStripMenuItem";
+			resources.ApplyResources(this.recordNowToolStripMenuItem, "recordNowToolStripMenuItem");
+			this.recordNowToolStripMenuItem.Click += new System.EventHandler(this.recordNowToolStripMenuItem_Click);
 			// 
 			// timer
 			// 
@@ -269,6 +278,7 @@ namespace Nahravadlo
 		private System.Windows.Forms.MenuStrip menuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem optionMenuItem;
 		private System.Windows.Forms.Timer timer;
+		private System.Windows.Forms.ToolStripMenuItem recordNowToolStripMenuItem;
 	}
 }
 
