@@ -1,0 +1,1 @@
+netz -s -r c:\windows\net20comp.dll nahravadlo.exe *.dll -so
