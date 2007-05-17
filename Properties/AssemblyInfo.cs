@@ -7,7 +7,7 @@ using System.Resources;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Nahravadlo")]
-[assembly: AssemblyDescription("Aplikace slouzi k nahravani kolejni TV za pomoci VLC.")]
+[assembly: AssemblyDescription("Aplikace slouzi k nahravani IPTV za pomoci VLC.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Arcao")]
 [assembly: AssemblyProduct("Nahravadlo")]
@@ -30,6 +30,6 @@ using System.Resources;
 //      Build Number
 //      Revision
 //
-[assembly: AssemblyVersion("0.1.3.0")]
-[assembly: AssemblyFileVersion("0.1.3.0")]
+[assembly: AssemblyVersion("0.1.3.1")]
+[assembly: AssemblyFileVersion("0.1.3.1")]
 [assembly: NeutralResourcesLanguageAttribute("cs-CZ")]

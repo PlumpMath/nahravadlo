@@ -62,9 +62,11 @@ namespace Nahravadlo
 			// lst
 			// 
 			this.lst.FormattingEnabled = true;
-			resources.ApplyResources(this.lst, "lst");
+			this.lst.Location = new System.Drawing.Point(12, 27);
 			this.lst.Name = "lst";
+			this.lst.Size = new System.Drawing.Size(228, 225);
 			this.lst.Sorted = true;
+			this.lst.TabIndex = 0;
 			this.lst.SelectedIndexChanged += new System.EventHandler(this.lst_SelectedIndexChanged);
 			// 
 			// groupBox1
@@ -86,79 +88,119 @@ namespace Nahravadlo
 			this.groupBox1.Controls.Add(this.label2);
 			this.groupBox1.Controls.Add(this.cmbProgram);
 			this.groupBox1.Controls.Add(this.label1);
-			resources.ApplyResources(this.groupBox1, "groupBox1");
+			this.groupBox1.Location = new System.Drawing.Point(254, 27);
 			this.groupBox1.Name = "groupBox1";
+			this.groupBox1.Size = new System.Drawing.Size(447, 222);
+			this.groupBox1.TabIndex = 1;
 			this.groupBox1.TabStop = false;
+			this.groupBox1.Text = "Informace o nahrávání";
 			// 
 			// txtStatus
 			// 
 			this.txtStatus.BackColor = System.Drawing.SystemColors.Control;
 			this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.None;
-			resources.ApplyResources(this.txtStatus, "txtStatus");
+			this.txtStatus.Location = new System.Drawing.Point(167, 156);
 			this.txtStatus.Name = "txtStatus";
+			this.txtStatus.Size = new System.Drawing.Size(274, 13);
+			this.txtStatus.TabIndex = 16;
 			// 
 			// label7
 			// 
-			resources.ApplyResources(this.label7, "label7");
+			this.label7.AutoSize = true;
+			this.label7.Location = new System.Drawing.Point(3, 156);
 			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(84, 13);
+			this.label7.TabIndex = 15;
+			this.label7.Text = "Stav nahrávání:";
 			// 
 			// cmdDelete
 			// 
-			resources.ApplyResources(this.cmdDelete, "cmdDelete");
+			this.cmdDelete.Enabled = false;
+			this.cmdDelete.Location = new System.Drawing.Point(113, 190);
 			this.cmdDelete.Name = "cmdDelete";
+			this.cmdDelete.Size = new System.Drawing.Size(101, 26);
+			this.cmdDelete.TabIndex = 14;
+			this.cmdDelete.Text = "Smazat";
 			this.cmdDelete.UseVisualStyleBackColor = true;
 			this.cmdDelete.Click += new System.EventHandler(this.cmdDelete_Click);
 			// 
 			// cmdSave
 			// 
-			resources.ApplyResources(this.cmdSave, "cmdSave");
+			this.cmdSave.Enabled = false;
+			this.cmdSave.Location = new System.Drawing.Point(340, 190);
 			this.cmdSave.Name = "cmdSave";
+			this.cmdSave.Size = new System.Drawing.Size(101, 26);
+			this.cmdSave.TabIndex = 13;
+			this.cmdSave.Text = "Uložit";
 			this.cmdSave.UseVisualStyleBackColor = true;
 			this.cmdSave.Click += new System.EventHandler(this.cmdSave_Click);
 			// 
 			// cmdAdd
 			// 
-			resources.ApplyResources(this.cmdAdd, "cmdAdd");
+			this.cmdAdd.Enabled = false;
+			this.cmdAdd.Location = new System.Drawing.Point(6, 190);
 			this.cmdAdd.Name = "cmdAdd";
+			this.cmdAdd.Size = new System.Drawing.Size(101, 26);
+			this.cmdAdd.TabIndex = 12;
+			this.cmdAdd.Text = "Pøidat";
 			this.cmdAdd.UseVisualStyleBackColor = true;
 			this.cmdAdd.Click += new System.EventHandler(this.cmdAdd_Click);
 			// 
 			// cmdBrowse
 			// 
-			resources.ApplyResources(this.cmdBrowse, "cmdBrowse");
+			this.cmdBrowse.Location = new System.Drawing.Point(414, 126);
 			this.cmdBrowse.Name = "cmdBrowse";
+			this.cmdBrowse.Size = new System.Drawing.Size(27, 20);
+			this.cmdBrowse.TabIndex = 11;
+			this.cmdBrowse.Text = "...";
 			this.cmdBrowse.UseVisualStyleBackColor = true;
 			this.cmdBrowse.Click += new System.EventHandler(this.cmdBrowse_Click);
 			// 
 			// txtFilename
 			// 
-			resources.ApplyResources(this.txtFilename, "txtFilename");
+			this.txtFilename.Location = new System.Drawing.Point(167, 127);
 			this.txtFilename.Name = "txtFilename";
+			this.txtFilename.Size = new System.Drawing.Size(241, 20);
+			this.txtFilename.TabIndex = 10;
 			// 
 			// label6
 			// 
-			resources.ApplyResources(this.label6, "label6");
+			this.label6.AutoSize = true;
+			this.label6.Location = new System.Drawing.Point(3, 133);
 			this.label6.Name = "label6";
+			this.label6.Size = new System.Drawing.Size(92, 13);
+			this.label6.TabIndex = 9;
+			this.label6.Text = "Uložit do souboru:";
 			// 
 			// txtName
 			// 
-			resources.ApplyResources(this.txtName, "txtName");
+			this.txtName.Location = new System.Drawing.Point(167, 22);
 			this.txtName.Name = "txtName";
+			this.txtName.Size = new System.Drawing.Size(274, 20);
+			this.txtName.TabIndex = 8;
 			this.txtName.TextChanged += new System.EventHandler(this.txtName_TextChanged);
 			// 
 			// label5
 			// 
-			resources.ApplyResources(this.label5, "label5");
+			this.label5.AutoSize = true;
+			this.label5.Location = new System.Drawing.Point(3, 25);
 			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(93, 13);
+			this.label5.TabIndex = 7;
+			this.label5.Text = "Název nahrávání:";
 			// 
 			// label4
 			// 
-			resources.ApplyResources(this.label4, "label4");
+			this.label4.AutoSize = true;
+			this.label4.Location = new System.Drawing.Point(236, 103);
 			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(32, 13);
+			this.label4.TabIndex = 6;
+			this.label4.Text = "minut";
 			// 
 			// numLength
 			// 
-			resources.ApplyResources(this.numLength, "numLength");
+			this.numLength.Location = new System.Drawing.Point(167, 101);
 			this.numLength.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -170,6 +212,9 @@ namespace Nahravadlo
             0,
             0});
 			this.numLength.Name = "numLength";
+			this.numLength.Size = new System.Drawing.Size(63, 20);
+			this.numLength.TabIndex = 5;
+			this.numLength.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			this.numLength.Value = new decimal(new int[] {
             1,
             0,
@@ -178,52 +223,74 @@ namespace Nahravadlo
 			// 
 			// label3
 			// 
-			resources.ApplyResources(this.label3, "label3");
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(3, 103);
 			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(75, 13);
+			this.label3.TabIndex = 4;
+			this.label3.Text = "Délka poøadu:";
 			// 
 			// dteBegin
 			// 
-			resources.ApplyResources(this.dteBegin, "dteBegin");
+			this.dteBegin.CustomFormat = "dd. MM. yyyy - HH:mm";
 			this.dteBegin.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+			this.dteBegin.Location = new System.Drawing.Point(167, 75);
 			this.dteBegin.Name = "dteBegin";
+			this.dteBegin.Size = new System.Drawing.Size(274, 20);
+			this.dteBegin.TabIndex = 3;
 			// 
 			// label2
 			// 
-			resources.ApplyResources(this.label2, "label2");
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(3, 79);
 			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(148, 13);
+			this.label2.TabIndex = 2;
+			this.label2.Text = "Datum a èas zaèátku poøadu:";
 			// 
 			// cmbProgram
 			// 
 			this.cmbProgram.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.cmbProgram.FormattingEnabled = true;
-			resources.ApplyResources(this.cmbProgram, "cmbProgram");
+			this.cmbProgram.Location = new System.Drawing.Point(167, 48);
 			this.cmbProgram.Name = "cmbProgram";
+			this.cmbProgram.Size = new System.Drawing.Size(274, 21);
+			this.cmbProgram.TabIndex = 1;
 			// 
 			// label1
 			// 
-			resources.ApplyResources(this.label1, "label1");
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(3, 51);
 			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(46, 13);
+			this.label1.TabIndex = 0;
+			this.label1.Text = "Stanice:";
 			// 
 			// menuStrip1
 			// 
 			this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.optionMenuItem,
             this.recordNowToolStripMenuItem});
-			resources.ApplyResources(this.menuStrip1, "menuStrip1");
+			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
 			this.menuStrip1.Name = "menuStrip1";
+			this.menuStrip1.Size = new System.Drawing.Size(713, 24);
+			this.menuStrip1.TabIndex = 2;
+			this.menuStrip1.Text = "menuStrip1";
 			// 
 			// optionMenuItem
 			// 
 			this.optionMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
 			this.optionMenuItem.Name = "optionMenuItem";
-			resources.ApplyResources(this.optionMenuItem, "optionMenuItem");
+			this.optionMenuItem.Size = new System.Drawing.Size(67, 20);
+			this.optionMenuItem.Text = "Nastavení";
 			this.optionMenuItem.Click += new System.EventHandler(this.optionMenuItem_Click);
 			// 
 			// recordNowToolStripMenuItem
 			// 
 			this.recordNowToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
 			this.recordNowToolStripMenuItem.Name = "recordNowToolStripMenuItem";
-			resources.ApplyResources(this.recordNowToolStripMenuItem, "recordNowToolStripMenuItem");
+			this.recordNowToolStripMenuItem.Size = new System.Drawing.Size(114, 20);
+			this.recordNowToolStripMenuItem.Text = "Okamžité nahrávání";
 			this.recordNowToolStripMenuItem.Click += new System.EventHandler(this.recordNowToolStripMenuItem_Click);
 			// 
 			// timer
@@ -233,15 +300,18 @@ namespace Nahravadlo
 			// 
 			// formMain
 			// 
-			resources.ApplyResources(this, "$this");
+			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+			this.ClientSize = new System.Drawing.Size(713, 261);
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.lst);
 			this.Controls.Add(this.menuStrip1);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
 			this.MainMenuStrip = this.menuStrip1;
 			this.MaximizeBox = false;
 			this.Name = "formMain";
+			this.Text = "Nahrávadlo x.x.x by Arcao";
 			this.Load += new System.EventHandler(this.Form1_Load);
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
