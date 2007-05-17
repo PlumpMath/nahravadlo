@@ -119,10 +119,10 @@ namespace Nahravadlo
 
 					if (useMpegTS)
 					{
-						t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) this.cmbProgram.SelectedItem).key, this.txtFilename.Text);
+						t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
 					} else
 					{
-						t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) this.cmbProgram.SelectedItem).key, this.txtFilename.Text);
+						t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
 					}
 					t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);
 
@@ -262,7 +262,7 @@ namespace Nahravadlo
 			dialog.OverwritePrompt = true;
 			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
 			dialog.ValidateNames = true;
-			if (dialog.ShowDialog() == DialogResult.OK) 
+			if (dialog.ShowDialog() == DialogResult.OK)
 				txtFilename.Text = dialog.FileName;
 		}
 
@@ -280,10 +280,10 @@ namespace Nahravadlo
 
 				if (useMpegTS)
 				{
-					t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) this.cmbProgram.SelectedItem).key, this.txtFilename.Text);
+					t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
 				} else
 				{
-					t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) this.cmbProgram.SelectedItem).key, this.txtFilename.Text);
+					t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
 				}
 
 				t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);

@@ -23,8 +23,9 @@ namespace Nahravadlo
 			if (dialog.ShowDialog() == DialogResult.OK)
 				txtFilename.Text = dialog.FileName;
 		}
+
 		private void populateCmbChannel()
-		{			
+		{
 			for (int i = 0; i < formMain.comboChannels.Items.Count; i++)
 			{
 				cmbChannel.Items.Add(formMain.comboChannels.Items[i]);
@@ -39,14 +40,13 @@ namespace Nahravadlo
 			if (formMain.useMpegTS)
 			{
 				parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbChannel.SelectedItem).key, txtFilename.Text);
-			}
-			else
+			} else
 			{
 				parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbChannel.SelectedItem).key, txtFilename.Text);
 			}
 
 			Process.Start(formMain.vlc, parameters);
-			this.Close();
+			Close();
 		}
 
 		private void txtFilename_TextChanged(object sender, EventArgs e)
