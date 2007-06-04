@@ -32,6 +32,7 @@ namespace Nahravadlo
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formMain));
 			this.lst = new System.Windows.Forms.ListBox();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.dteEnd = new System.Windows.Forms.DateTimePicker();
 			this.txtStatus = new System.Windows.Forms.TextBox();
 			this.label7 = new System.Windows.Forms.Label();
 			this.cmdDelete = new System.Windows.Forms.Button();
@@ -71,6 +72,7 @@ namespace Nahravadlo
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.dteEnd);
 			this.groupBox1.Controls.Add(this.txtStatus);
 			this.groupBox1.Controls.Add(this.label7);
 			this.groupBox1.Controls.Add(this.cmdDelete);
@@ -95,6 +97,17 @@ namespace Nahravadlo
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Informace o nahrávání";
 			// 
+			// dteEnd
+			// 
+			this.dteEnd.CustomFormat = "dd. MM. yyyy - HH:mm";
+			this.dteEnd.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+			this.dteEnd.Location = new System.Drawing.Point(311, 101);
+			this.dteEnd.Name = "dteEnd";
+			this.dteEnd.Size = new System.Drawing.Size(130, 20);
+			this.dteEnd.TabIndex = 17;
+			this.dteEnd.ValueChanged += new System.EventHandler(this.dteEnd_ValueChanged);
+			this.dteEnd.Validating += new System.ComponentModel.CancelEventHandler(this.dteEnd_Validating);
+			// 
 			// txtStatus
 			// 
 			this.txtStatus.BackColor = System.Drawing.SystemColors.Control;
@@ -103,6 +116,7 @@ namespace Nahravadlo
 			this.txtStatus.Name = "txtStatus";
 			this.txtStatus.Size = new System.Drawing.Size(274, 13);
 			this.txtStatus.TabIndex = 16;
+			this.txtStatus.Text = "Nahrávání nebylo ještì založeno.";
 			// 
 			// label7
 			// 
@@ -166,7 +180,7 @@ namespace Nahravadlo
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(3, 133);
+			this.label6.Location = new System.Drawing.Point(3, 130);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(92, 13);
 			this.label6.TabIndex = 9;
@@ -192,11 +206,11 @@ namespace Nahravadlo
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(236, 103);
+			this.label4.Location = new System.Drawing.Point(225, 103);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(32, 13);
+			this.label4.Size = new System.Drawing.Size(80, 13);
 			this.label4.TabIndex = 6;
-			this.label4.Text = "minut";
+			this.label4.Text = "minut, nebo do:";
 			// 
 			// numLength
 			// 
@@ -212,7 +226,7 @@ namespace Nahravadlo
             0,
             0});
 			this.numLength.Name = "numLength";
-			this.numLength.Size = new System.Drawing.Size(63, 20);
+			this.numLength.Size = new System.Drawing.Size(52, 20);
 			this.numLength.TabIndex = 5;
 			this.numLength.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			this.numLength.Value = new decimal(new int[] {
@@ -220,6 +234,7 @@ namespace Nahravadlo
             0,
             0,
             0});
+			this.numLength.ValueChanged += new System.EventHandler(this.numLength_ValueChanged);
 			// 
 			// label3
 			// 
@@ -238,6 +253,7 @@ namespace Nahravadlo
 			this.dteBegin.Name = "dteBegin";
 			this.dteBegin.Size = new System.Drawing.Size(274, 20);
 			this.dteBegin.TabIndex = 3;
+			this.dteBegin.ValueChanged += new System.EventHandler(this.dteBegin_ValueChanged);
 			// 
 			// label2
 			// 
@@ -349,6 +365,7 @@ namespace Nahravadlo
 		private System.Windows.Forms.ToolStripMenuItem optionMenuItem;
 		private System.Windows.Forms.Timer timer;
 		private System.Windows.Forms.ToolStripMenuItem recordNowToolStripMenuItem;
+		private System.Windows.Forms.DateTimePicker dteEnd;
 	}
 }
 

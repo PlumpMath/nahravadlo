@@ -21,6 +21,7 @@ namespace Nahravadlo
 		public formMain()
 		{
 			InitializeComponent();
+			Application.EnableVisualStyles();
 			comboChannels = cmbProgram;
 		}
 
@@ -31,6 +32,8 @@ namespace Nahravadlo
 			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
 			LoadConfig();
 			RefreshList();
+			dteBegin.Value = DateTime.Now;
+			dteEnd.Value = dteBegin.Value.AddMinutes(1);
 			timer.Enabled = true;
 		}
 
@@ -209,7 +212,7 @@ namespace Nahravadlo
 				}
 
 				XmlNodeList objNodes = objRootXmlElement.SelectNodes("programy/program");
-				lst.Items.Clear();
+				cmbProgram.Items.Clear();
 				foreach(XmlNode objNode in objNodes)
 					cmbProgram.Items.Add(new ProgramContainer(objNode.SelectSingleNode("nazev").InnerText, objNode.SelectSingleNode("uri").InnerText));
 
@@ -335,9 +338,10 @@ namespace Nahravadlo
 			txtName.Text = "";
 			cmbProgram.SelectedIndex = 0;
 			dteBegin.Value = DateTime.Now;
+			dteEnd.Value = dteBegin.Value.AddMinutes(1);
 			numLength.Value = 1;
 			txtFilename.Text = "";
-			txtStatus.Text = "";
+			txtStatus.Text = "Nahrávání nebylo ještì založeno.";
 			lst.Items.Remove(item);
 
 			st.Dispose();
@@ -418,9 +422,10 @@ namespace Nahravadlo
 							txtName.Text = "";
 							cmbProgram.SelectedIndex = 0;
 							dteBegin.Value = DateTime.Now;
+							dteEnd.Value = dteBegin.Value.AddMinutes(1);
 							numLength.Value = 1;
 							txtFilename.Text = "";
-							txtStatus.Text = "";
+							txtStatus.Text = "Nahrávání nebylo ještì založeno.";
 						}
 						lst.Items.Remove(container);
 					}
@@ -446,6 +451,42 @@ namespace Nahravadlo
 			formRecordNow f;
 			f = new formRecordNow();
 			f.ShowDialog();
+		}
+
+		private void dteEnd_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
+			{
+				//e.Cancel = true;
+				Utils.ShowBubble(dteEnd,ToolTipIcon.Error, "Chyba v datumu!", "Datum konce poøadu je nastaven pøed datum zaèátku!");
+				
+				DateTime val = dteBegin.Value;
+				val = val.AddMinutes(1);
+				dteEnd.Value = val;
+			}
+		}
+
+		private void dteEnd_ValueChanged(object sender, EventArgs e)
+		{
+			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
+				return;
+			
+			numLength.Value = (int) Decimal.Round((decimal)dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes);
+		}
+
+		private void numLength_ValueChanged(object sender, EventArgs e)
+		{
+
+			DateTime val = dteBegin.Value;
+			val = val.AddMinutes((double) numLength.Value);
+			dteEnd.Value = val;
+		}
+
+		private void dteBegin_ValueChanged(object sender, EventArgs e)
+		{
+			DateTime val = dteBegin.Value;
+			val = val.AddMinutes((double) numLength.Value);
+			dteEnd.Value = val;
 		}
 	}
 
