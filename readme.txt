@@ -1,4 +1,4 @@
-Napoveda k programu Nahravadlo 0.1.3 by Arcao
+Napoveda k programu Nahravadlo 0.1.4 by Arcao
 --------------------------------------------------------------------------------
 
 Aplikace slouzi k nahravani kolejni TV za pomoci VLC, kde v programu napisete
@@ -52,6 +52,13 @@ Pro spravnou funkci programu je nutne nastavit:
 --------------------------------------------------------------------------------
 
 Historie: (o = oprava chyby, + = pridana vlastnost)
+
+ v 0.1.4
+    + Pridana moznost okamzite spustit nahravani pod aktualne prihlasenym 
+      uzivatelem.
+    + Nyni je mozne nastavit delku nahravani i z datumu a casu konce nahravani
+    o Po ulozeni a zavreni okna Nastaveni se seznam stanic naplnil duplicitnimi
+      polozkami  
 
  v 0.1.3
     + Pridan konfiguracni dialog, nyni jiz neni nutne sahat do config.xml rucne
@@ -136,6 +143,11 @@ Kontakt:
   www:    http://arcao.com
 
   Kdyby jste nesehnali zdrojaky muzete si o ne napsat, rad vam je zaslu.
+  Od verze 0.1.3 je mozne zdrojaky taktez stahnout ze SVN repository.
+  
+  SVN: http://opensvn.csie.org/nahravadlo/ (moznost pouzit i protokol https)
+  TRAC: https://opensvn.csie.org/traccgi/nahravadlo
+  TRAC BROWSER: https://opensvn.csie.org/traccgi/nahravadlo/browser
 
   Nove verze programu by se meli objevit na http://files.arcao.com/nahravadlo/
 
