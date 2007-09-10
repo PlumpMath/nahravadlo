@@ -52,8 +52,9 @@ namespace Nahravadlo
 			this.label1 = new System.Windows.Forms.Label();
 			this.dialog = new System.Windows.Forms.SaveFileDialog();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+			this.aboutMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.optionMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.recordNowToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.recordNowMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.timer = new System.Windows.Forms.Timer(this.components);
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize) (this.numLength)).BeginInit();
@@ -162,9 +163,9 @@ namespace Nahravadlo
 			// 
 			// cmdBrowse
 			// 
-			this.cmdBrowse.Location = new System.Drawing.Point(414, 126);
+			this.cmdBrowse.Location = new System.Drawing.Point(407, 126);
 			this.cmdBrowse.Name = "cmdBrowse";
-			this.cmdBrowse.Size = new System.Drawing.Size(27, 20);
+			this.cmdBrowse.Size = new System.Drawing.Size(34, 22);
 			this.cmdBrowse.TabIndex = 11;
 			this.cmdBrowse.Text = "...";
 			this.cmdBrowse.UseVisualStyleBackColor = true;
@@ -174,7 +175,7 @@ namespace Nahravadlo
 			// 
 			this.txtFilename.Location = new System.Drawing.Point(167, 127);
 			this.txtFilename.Name = "txtFilename";
-			this.txtFilename.Size = new System.Drawing.Size(241, 20);
+			this.txtFilename.Size = new System.Drawing.Size(234, 20);
 			this.txtFilename.TabIndex = 10;
 			// 
 			// label6
@@ -278,20 +279,29 @@ namespace Nahravadlo
 			this.label1.AutoSize = true;
 			this.label1.Location = new System.Drawing.Point(3, 51);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(46, 13);
+			this.label1.Size = new System.Drawing.Size(84, 13);
 			this.label1.TabIndex = 0;
-			this.label1.Text = "Stanice:";
+			this.label1.Text = "Kanál / Stanice:";
 			// 
 			// menuStrip1
 			// 
 			this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.aboutMenuItem,
             this.optionMenuItem,
-            this.recordNowToolStripMenuItem});
+            this.recordNowMenuItem});
 			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
 			this.menuStrip1.Name = "menuStrip1";
 			this.menuStrip1.Size = new System.Drawing.Size(713, 24);
 			this.menuStrip1.TabIndex = 2;
 			this.menuStrip1.Text = "menuStrip1";
+			// 
+			// aboutMenuItem
+			// 
+			this.aboutMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.aboutMenuItem.Name = "aboutMenuItem";
+			this.aboutMenuItem.Size = new System.Drawing.Size(64, 20);
+			this.aboutMenuItem.Text = "O aplikaci";
+			this.aboutMenuItem.Click += new System.EventHandler(this.aboutMenuItem_Click);
 			// 
 			// optionMenuItem
 			// 
@@ -301,13 +311,13 @@ namespace Nahravadlo
 			this.optionMenuItem.Text = "Nastavení";
 			this.optionMenuItem.Click += new System.EventHandler(this.optionMenuItem_Click);
 			// 
-			// recordNowToolStripMenuItem
+			// recordNowMenuItem
 			// 
-			this.recordNowToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-			this.recordNowToolStripMenuItem.Name = "recordNowToolStripMenuItem";
-			this.recordNowToolStripMenuItem.Size = new System.Drawing.Size(114, 20);
-			this.recordNowToolStripMenuItem.Text = "Okamžité nahrávání";
-			this.recordNowToolStripMenuItem.Click += new System.EventHandler(this.recordNowToolStripMenuItem_Click);
+			this.recordNowMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.recordNowMenuItem.Name = "recordNowMenuItem";
+			this.recordNowMenuItem.Size = new System.Drawing.Size(114, 20);
+			this.recordNowMenuItem.Text = "Okamžité nahrávání";
+			this.recordNowMenuItem.Click += new System.EventHandler(this.RecordNowMenuItem_Click);
 			// 
 			// timer
 			// 
@@ -364,8 +374,9 @@ namespace Nahravadlo
 		private System.Windows.Forms.MenuStrip menuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem optionMenuItem;
 		private System.Windows.Forms.Timer timer;
-		private System.Windows.Forms.ToolStripMenuItem recordNowToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem recordNowMenuItem;
 		private System.Windows.Forms.DateTimePicker dteEnd;
+		private System.Windows.Forms.ToolStripMenuItem aboutMenuItem;
 	}
 }
 

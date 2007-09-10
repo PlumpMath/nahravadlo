@@ -1,17 +1,26 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
-using System.Xml;
 
 namespace Nahravadlo
 {
 	public partial class formSettings : Form
 	{
 		public bool isCanceled = false;
+		private Settings settings;
 
 		public formSettings()
 		{
 			InitializeComponent();
+
+			try
+			{
+				Settings.default_filename = Application.StartupPath + @"\config.xml";
+				settings = Settings.getInstance();
+			} catch
+			{
+			}
+
 			LoadData();
 			isCanceled = false;
 		}
@@ -39,6 +48,7 @@ namespace Nahravadlo
 			if (!File.Exists(txtVLCPath.Text) || txtVLCPath.Text.Trim().Length == 0 || !Directory.Exists(txtDefaultDirectory.Text) || txtDefaultDirectory.Text.Trim().Length == 0)
 			{
 				MessageBox.Show("Prosím vyplòte správnì následující položky:\n\nCesta k VLC - musí obsahovat cestu k VLC vèetnì spustitelného souboru.\n\nVýchozí adresáø - musí obsahovat cestu k adresáøi, kam se budou ukládat nahrané poøady, pokud u nich nebude uvedena absolutní cesta.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				DialogResult = DialogResult.None;
 				return;
 			}
 			SaveData();
@@ -47,91 +57,45 @@ namespace Nahravadlo
 
 		private void LoadData()
 		{
-			txtDefaultDirectory.Text = @"C:\";
-
 			try
 			{
-				XmlDocument objXmlDoc = new XmlDocument();
-				objXmlDoc.Load(Application.StartupPath + @"\config.xml");
+				txtVLCPath.Text = settings.getString("nahravadlo/config/vlc", "");
+				txtUsername.Text = settings.getString("nahravadlo/config/login/username", "");
+				txtPassword.Text = settings.getString("nahravadlo/config/login/password", "");
 
-				XmlElement objRootXmlElement = objXmlDoc.DocumentElement;
+				txtDefaultDirectory.Text = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
 
-				if (objRootXmlElement.SelectSingleNode("config/vlc") != null)
-					txtVLCPath.Text = objRootXmlElement.SelectSingleNode("config/vlc").InnerText;
-				if (objRootXmlElement.SelectSingleNode("config/login/username") != null)
-					txtUsername.Text = objRootXmlElement.SelectSingleNode("config/login/username").InnerText;
-				if (objRootXmlElement.SelectSingleNode("config/login/password") != null)
-					txtPassword.Text = objRootXmlElement.SelectSingleNode("config/login/password").InnerText;
-				try
-				{
-					chkUseMPEGTS.Checked = Boolean.Parse(objRootXmlElement.SelectSingleNode("config/use_mpegts").InnerText);
-				} catch(Exception)
-				{
-				}
+				chkUseMPEGTS.Checked = settings.getBool("nahravadlo/config/use_mpegts", false);
 
-				txtDefaultDirectory.Text = objRootXmlElement.SelectSingleNode("config/defaultdirectory").InnerText;
-				objXmlDoc = null;
-			} catch(Exception)
+				Channel[] channels = new Channels(settings).getChannels();
+
+				if (channels.Length == 0) channels = new Channels(settings).getDefaultChannels();
+
+				lstChannel.Items.Clear();
+				foreach(Channel channel in channels)
+					lstChannel.Items.Add(channel);
+			} catch
 			{
 			}
 		}
 
 		private void SaveData()
 		{
-			XmlDocument objXmlDoc = new XmlDocument();
 			try
 			{
-				objXmlDoc.Load(Application.StartupPath + @"\config.xml");
-			} catch(Exception)
-			{
-			}
+				settings.setString("nahravadlo/config/vlc", txtVLCPath.Text);
+				settings.setString("nahravadlo/config/defaultdirectory", txtDefaultDirectory.Text);
+				settings.setBool("nahravadlo/config/use_mpegts", chkUseMPEGTS.Checked);
 
-			try
-			{
-				if (objXmlDoc.SelectNodes("//nahravadlo").Count == 0)
-					objXmlDoc.AppendChild(objXmlDoc.CreateElement("nahravadlo"));
+				settings.setString("nahravadlo/config/login/username", txtUsername.Text);
+				settings.setString("nahravadlo/config/login/password", txtPassword.Text);
 
-				if (objXmlDoc.SelectNodes("//nahravadlo/config").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo").AppendChild(objXmlDoc.CreateElement("config"));
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/vlc").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config").AppendChild(objXmlDoc.CreateElement("vlc"));
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/defaultdirectory").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config").AppendChild(objXmlDoc.CreateElement("defaultdirectory"));
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/use_mpegts").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config").AppendChild(objXmlDoc.CreateElement("use_mpegts"));
+				Channel[] channel = new Channel[lstChannel.Items.Count];
+				lstChannel.Items.CopyTo(channel, 0);
 
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/login").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config").AppendChild(objXmlDoc.CreateElement("login"));
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/login/username").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config/login").AppendChild(objXmlDoc.CreateElement("username"));
-				if (objXmlDoc.SelectNodes("//nahravadlo/config/login/password").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo/config/login").AppendChild(objXmlDoc.CreateElement("password"));
+				new Channels(settings).setChannels(channel);
 
-				if (objXmlDoc.SelectNodes("//nahravadlo/programy").Count == 0)
-					objXmlDoc.SelectSingleNode("//nahravadlo").AppendChild(objXmlDoc.CreateElement("programy"));
-
-				if (objXmlDoc.SelectNodes("//nahravadlo/programy/program").Count == 0)
-				{
-					String[,] programs = {{"ÈT 1", "udp://@239.192.1.20:1234"}, {"ÈT 2", "udp://@239.192.1.21:1234"}, {"Nova", "udp://@239.192.1.22:1234"}, {"Prima", "udp://@239.192.1.23:1234"}, {"ÈT 24", "udp://@239.192.1.24:1234"}, {"ÈT 4 Sport", "udp://@239.192.1.25:1234"}};
-					for (int i = 0; i < programs.GetLength(0); i++)
-					{
-						XmlNode node = objXmlDoc.SelectSingleNode("//nahravadlo/programy").AppendChild(objXmlDoc.CreateElement("program"));
-						node.AppendChild(objXmlDoc.CreateElement("nazev")).AppendChild(objXmlDoc.CreateTextNode(programs[i, 0]));
-						node.AppendChild(objXmlDoc.CreateElement("uri")).AppendChild(objXmlDoc.CreateTextNode(programs[i, 1]));
-					}
-				}
-
-				if (!objXmlDoc.OuterXml.Contains("<?xml"))
-					objXmlDoc.InsertBefore(objXmlDoc.CreateXmlDeclaration("1.0", "utf-8", null), objXmlDoc.DocumentElement);
-
-				objXmlDoc.SelectSingleNode("//nahravadlo/config/vlc").InnerText = txtVLCPath.Text;
-				objXmlDoc.SelectSingleNode("//nahravadlo/config/defaultdirectory").InnerText = txtDefaultDirectory.Text;
-				objXmlDoc.SelectSingleNode("//nahravadlo/config/use_mpegts").InnerText = chkUseMPEGTS.Checked.ToString();
-
-				objXmlDoc.SelectSingleNode("//nahravadlo/config/login/username").InnerText = txtUsername.Text;
-				objXmlDoc.SelectSingleNode("//nahravadlo/config/login/password").InnerText = txtPassword.Text;
-
-				objXmlDoc.Save(Application.StartupPath + @"\config.xml");
+				settings.Save();
 			} catch(Exception e)
 			{
 				MessageBox.Show("Nepovedlo se uložit nastavení programu.\n\nSystém hlásí: " + e.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -148,6 +112,104 @@ namespace Nahravadlo
 		private void btnContainerHelp_Click(object sender, EventArgs e)
 		{
 			MessageBox.Show("MPEG TS (Transport Stream) se používá pro pøenášení MPEG záznamu v prostøedí, kde mohou vznikat chyby, napø: DVB-T, streamovaní po síti, atd. Narozdíl od toho se MPEG PS (Programm Stream) využívá v prostøedí, kde opravu chyb dokáže zajistit jiná technologie, napø. DVD, video na disku, atd.\n\nMPEG PS pøehraje jakýkoliv software pro sledovani videa. Pro pøehrání MPEG TS kontejneru, je již potøebný vìtšinou nìjaký plugin. Pro programy používající DirectShow, jako napøíklad Windows Media Player, BSPlayer, MV2Player lze použít Haali Media Splitter. Pøehrátí MPEG TS bez instalace pluginu umí tøeba VLC, nebo pøeportovaný MPlayer na Windows.\n\nPoznámka: VLC 0.7.x a pravdìpodobnì i nišší, má problémy s vytváøením MPEG PS kontejnerù (projevuje se to, že se nelze posouvat ve videu, pøípadnì pøi posunutí pøehrávaè spadne - pøíklad Windows Media Playeru). Proto pro použití MPEG PS kontejneru doporuèuji použít poslední verzi VLC, která tyto problémy nemá.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
+		private void lstChannel_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			Channel channel = (Channel) lstChannel.SelectedItem;
+
+			if (channel == null)
+			{
+				btnChannelSave.Enabled = false;
+				btnChannelDelete.Enabled = false;
+
+				btnChannelUp.Enabled = false;
+				btnChannelDown.Enabled = false;
+
+				txtChannelName.Text = "";
+				txtChannelUri.Text = "";
+				txtChannelId.Text = "";
+
+				txtChannelName.Enabled = false;
+				txtChannelUri.Enabled = false;
+				txtChannelId.Enabled = false;
+				return;
+			} else
+			{
+				btnChannelSave.Enabled = true;
+				btnChannelDelete.Enabled = true;
+
+				txtChannelName.Enabled = true;
+				txtChannelUri.Enabled = true;
+				//txtChannelId.Enabled = true;
+			}
+
+			btnChannelUp.Enabled = (lstChannel.SelectedIndex > 0);
+			btnChannelDown.Enabled = (lstChannel.SelectedIndex < lstChannel.Items.Count - 1);
+
+			txtChannelName.Text = channel.getName();
+			txtChannelUri.Text = channel.getUri();
+			txtChannelId.Text = channel.getId();
+		}
+
+		private void btnChannelDelete_Click(object sender, EventArgs e)
+		{
+			lstChannel.Items.Remove(lstChannel.SelectedItem);
+		}
+
+		private void btnChannelSave_Click(object sender, EventArgs e)
+		{
+			lstChannel.SelectedItem = new Channel(txtChannelName.Text, txtChannelUri.Text, txtChannelId.Text);
+		}
+
+		private void btnChannelAdd_Click(object sender, EventArgs e)
+		{
+			lstChannel.SelectedIndex = lstChannel.Items.Add(new Channel("Název kanálu", "udp://@", ""));
+		}
+
+		private void btnChannelUp_Click(object sender, EventArgs e)
+		{
+			int index = lstChannel.SelectedIndex;
+			Object temp = lstChannel.Items[index - 1];
+
+			lstChannel.Items[index - 1] = lstChannel.Items[index];
+			lstChannel.Items[index] = temp;
+
+			lstChannel.SelectedIndex = index - 1;
+		}
+
+		private void btnChannelDown_Click(object sender, EventArgs e)
+		{
+			int index = lstChannel.SelectedIndex;
+			Object temp = lstChannel.Items[index + 1];
+
+			lstChannel.Items[index + 1] = lstChannel.Items[index];
+			lstChannel.Items[index] = temp;
+
+			lstChannel.SelectedIndex = index + 1;
+		}
+
+		private void btnImport_Click(object sender, EventArgs e)
+		{
+			if (importFile.ShowDialog() == DialogResult.OK)
+			{
+				Channels ch = new Channels(settings);
+				Channel[] channels = ch.loadChannelsFromFile(importFile.FileName);
+				ch.setChannels(channels);
+
+				lstChannel.Items.Clear();
+				foreach(Channel channel in channels)
+					lstChannel.Items.Add(channel);
+			}
+		}
+
+		private void btnExport_Click(object sender, EventArgs e)
+		{
+			if (exportFile.ShowDialog() == DialogResult.OK)
+			{
+				Channels channels = new Channels(settings);
+				channels.saveChannelsToFile(exportFile.FileName, channels.getChannels());
+			}
 		}
 	}
 }

@@ -39,10 +39,10 @@ namespace Nahravadlo
 			String parameters;
 			if (formMain.useMpegTS)
 			{
-				parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbChannel.SelectedItem).key, txtFilename.Text);
+				parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbChannel.SelectedItem).getUri(), txtFilename.Text);
 			} else
 			{
-				parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbChannel.SelectedItem).key, txtFilename.Text);
+				parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((Channel) cmbChannel.SelectedItem).getUri(), txtFilename.Text);
 			}
 
 			Process.Start(formMain.vlc, parameters);

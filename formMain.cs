@@ -1,10 +1,10 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
-using System.Xml;
 using TaskScheduler;
 
 namespace Nahravadlo
@@ -18,9 +18,12 @@ namespace Nahravadlo
 		public static bool useMpegTS = false;
 		public static ComboBox comboChannels;
 
+		private Settings settings;
+
 		public formMain()
 		{
 			InitializeComponent();
+
 			Application.EnableVisualStyles();
 			comboChannels = cmbProgram;
 		}
@@ -85,7 +88,7 @@ namespace Nahravadlo
 
 				Regex r = new Regex("(?<uri>(udp://([0-9:@.]+))).*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))(\"|\"}})");
 				Match m = r.Match(t.Parameters);
-				cmbProgram.SelectedIndex = getProgramItemFromKey(m.Groups["uri"].Value);
+				cmbProgram.SelectedIndex = getChannelIndexFromUri(m.Groups["uri"].Value);
 				txtFilename.Text = m.Groups["filename"].Value;
 
 				txtStatus.Text = StatusToText(t.Status);
@@ -99,11 +102,11 @@ namespace Nahravadlo
 			}
 		}
 
-		public int getProgramItemFromKey(string key)
+		public int getChannelIndexFromUri(string uri)
 		{
 			foreach(Object item in cmbProgram.Items)
 			{
-				if (((ProgramContainer) item).key.CompareTo(key) == 0)
+				if (((Channel) item).getUri().CompareTo(uri) == 0)
 					return cmbProgram.FindString(item.ToString());
 			}
 			return -1;
@@ -122,10 +125,10 @@ namespace Nahravadlo
 
 					if (useMpegTS)
 					{
-						t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
+						t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
 					} else
 					{
-						t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
+						t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
 					}
 					t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);
 
@@ -169,65 +172,43 @@ namespace Nahravadlo
 
 		public void LoadConfig()
 		{
-			XmlDocument objXmlDoc = new XmlDocument();
 			try
 			{
 				if (!File.Exists(string.Format(@"{0}\config.xml", Application.StartupPath)))
 				{
-					throw new Exception("Soubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
+					throw new Exception("Nepovedlo se naèíst soubor config.xml.\n\nSoubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
 				}
-				objXmlDoc.Load(string.Format(@"{0}\config.xml", Application.StartupPath));
 
-				XmlElement objRootXmlElement = objXmlDoc.DocumentElement;
+				Settings.default_filename = Application.StartupPath + @"\config.xml";
+				settings = Settings.getInstance();
 
-				if (objRootXmlElement.SelectSingleNode("config/vlc") != null)
-				{
-					vlc = objRootXmlElement.SelectSingleNode("config/vlc").InnerText;
-				} else
-				{
-					MessageBox.Show("Chyba v soubor config.xml.\n\nNení nastavena cesta k exe souboru programu VLC.\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-					Application.Exit();
-				}
+				vlc = settings.getString("nahravadlo/config/vlc", "");
+				if (vlc.Length == 0)
+					throw new Exception("Chyba v soubor config.xml.\n\nNení nastavena cesta k exe souboru programu VLC.\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.");
+
 				if (!File.Exists(vlc))
-				{
 					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", vlc));
-				}
-				if (objRootXmlElement.SelectSingleNode("config/login/username") != null)
-					username = objRootXmlElement.SelectSingleNode("config/login/username").InnerText;
-				if (objRootXmlElement.SelectSingleNode("config/login/password") != null)
-					password = objRootXmlElement.SelectSingleNode("config/login/password").InnerText;
 
-				try
-				{
-					defaultDirectory = objRootXmlElement.SelectSingleNode("config/defaultdirectory").InnerText;
-				} catch(Exception)
-				{
-					defaultDirectory = @"C:\";
-				}
-				try
-				{
-					useMpegTS = Boolean.Parse(objRootXmlElement.SelectSingleNode("config/use_mpegts").InnerText);
-				} catch(Exception)
-				{
-				}
+				username = settings.getString("nahravadlo/config/login/username", "");
+				password = settings.getString("nahravadlo/config/login/password", "");
+				defaultDirectory = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
 
-				XmlNodeList objNodes = objRootXmlElement.SelectNodes("programy/program");
+				useMpegTS = settings.getBool("nahravadlo/config/use_mpegts", false);
+
+				Channel[] channels = new Channels(settings).getChannels();
+
 				cmbProgram.Items.Clear();
-				foreach(XmlNode objNode in objNodes)
-					cmbProgram.Items.Add(new ProgramContainer(objNode.SelectSingleNode("nazev").InnerText, objNode.SelectSingleNode("uri").InnerText));
+				foreach(Channel channel in channels) cmbProgram.Items.Add(channel);
 
 				if (cmbProgram.Items.Count > 0) cmbProgram.SelectedIndex = 0;
-
-				objNodes = null;
-				objXmlDoc = null;
 			} catch(Exception ex)
 			{
-				MessageBox.Show(string.Format("Nepovedlo se naèíst soubor config.xml.\n\n{0}", ex.Message), Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show(ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				//Application.Exit();
 				formSettings f = new formSettings();
 				f.Text = "Nastavení programu " + Text;
-				f.ShowDialog();
-				if (!f.isCanceled)
+				f.ShowDialog(this);
+				if (f.DialogResult == DialogResult.OK)
 				{
 					LoadConfig();
 				} else
@@ -250,7 +231,7 @@ namespace Nahravadlo
 
 			cmdDelete.Enabled = cmdSave.Enabled;
 
-			if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || st.OpenTask("Nahrávání - " + txtName.Text) != null)
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || st.OpenTask("Nahrávání - " + txtName.Text) != null)
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;
@@ -283,10 +264,10 @@ namespace Nahravadlo
 
 				if (useMpegTS)
 				{
-					t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
+					t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
 				} else
 				{
-					t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((ProgramContainer) cmbProgram.SelectedItem).key, txtFilename.Text);
+					t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
 				}
 
 				t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);
@@ -378,7 +359,7 @@ namespace Nahravadlo
 			formSettings f = new formSettings();
 			f.Text = "Nastavení programu " + Text;
 			f.ShowDialog(this);
-			if (!f.isCanceled)
+			if (f.DialogResult == DialogResult.OK)
 			{
 				LoadConfig();
 			}
@@ -446,20 +427,20 @@ namespace Nahravadlo
 			st.Dispose();
 		}
 
-		private void recordNowToolStripMenuItem_Click(object sender, EventArgs e)
+		private void RecordNowMenuItem_Click(object sender, EventArgs e)
 		{
 			formRecordNow f;
 			f = new formRecordNow();
-			f.ShowDialog();
+			f.ShowDialog(this);
 		}
 
-		private void dteEnd_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+		private void dteEnd_Validating(object sender, CancelEventArgs e)
 		{
 			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
 			{
 				//e.Cancel = true;
-				Utils.ShowBubble(dteEnd,ToolTipIcon.Error, "Chyba v datumu!", "Datum konce poøadu je nastaven pøed datum zaèátku!");
-				
+				Utils.ShowBubble(dteEnd, ToolTipIcon.Error, "Chyba v datumu!", "Datum konce poøadu je nastaven pøed datum zaèátku!");
+
 				DateTime val = dteBegin.Value;
 				val = val.AddMinutes(1);
 				dteEnd.Value = val;
@@ -470,13 +451,12 @@ namespace Nahravadlo
 		{
 			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
 				return;
-			
-			numLength.Value = (int) Decimal.Round((decimal)dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes);
+
+			numLength.Value = (int) Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes);
 		}
 
 		private void numLength_ValueChanged(object sender, EventArgs e)
 		{
-
 			DateTime val = dteBegin.Value;
 			val = val.AddMinutes((double) numLength.Value);
 			dteEnd.Value = val;
@@ -488,6 +468,15 @@ namespace Nahravadlo
 			val = val.AddMinutes((double) numLength.Value);
 			dteEnd.Value = val;
 		}
+
+		private void aboutMenuItem_Click(object sender, EventArgs e)
+		{
+			string content = "Nahrávadlo {0}.{1}.{2}\n----------------------------------\nNaprogramoval: Arcao\n\nhttp://nahravadlo.arcao.com";
+			String[] ver = Application.ProductVersion.Split('.');
+			MessageBox.Show(String.Format(content, ver[0], ver[1], ver[2]), Text, MessageBoxButtons.OK,
+			                MessageBoxIcon.Information);
+			
+		}
 	}
 
 	public class ListContainer
@@ -496,23 +485,6 @@ namespace Nahravadlo
 		public string key;
 
 		public ListContainer(string name, string key)
-		{
-			this.name = name;
-			this.key = key;
-		}
-
-		public override string ToString()
-		{
-			return name;
-		}
-	}
-
-	public class ProgramContainer
-	{
-		public string name;
-		public string key;
-
-		public ProgramContainer(string name, string key)
 		{
 			this.name = name;
 			this.key = key;
