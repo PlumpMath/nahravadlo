@@ -21,8 +21,8 @@ namespace TestApp {
 			// Open each task, dump info to console
 			foreach (string name in taskNames) {
 				Task t = st.OpenTask(name);
-				Console.WriteLine("  [" + name + "]");
-				Console.WriteLine("  " + t.ToString());
+				//Console.WriteLine("--> " + name + " ");
+				Console.WriteLine(t.ToString() + "\n");
 				t.Close();
 			}
 		}
@@ -90,10 +90,10 @@ namespace TestApp {
 			Console.Write("Account: ");
 			string acct = Console.ReadLine();
 			if (acct=="") {
-				t.SetAccountInformation(acct, null);
+				t.SetAccountInformation(acct, (string)null);
 			} else if (acct == Environment.UserName) {
 				t.Flags = TaskFlags.RunOnlyIfLoggedOn;
-				t.SetAccountInformation(acct, null);
+				t.SetAccountInformation(acct, (string)null);
 				Console.WriteLine("cur user is " + Environment.UserName + "; No password needed.");
 			} else {
 				Console.Write("Password: ");
@@ -137,7 +137,7 @@ namespace TestApp {
 
 			// Set the account under which the task should run.
 			// Passing an empty string and null sets the task to be run under the local system account.
-			t.SetAccountInformation("", null);
+			t.SetAccountInformation("", (string)null);
 
 			// Declare that the system must have been idle for ten minutes before the task will start
 			t.IdleWaitMinutes = 10;

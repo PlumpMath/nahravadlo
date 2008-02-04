@@ -36,6 +36,7 @@ namespace Nahravadlo
 			this.cmdRunNow = new System.Windows.Forms.Button();
 			this.cmdCancel = new System.Windows.Forms.Button();
 			this.dialog = new System.Windows.Forms.SaveFileDialog();
+			this.chkPlayStream = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// lblChannel
@@ -85,7 +86,7 @@ namespace Nahravadlo
 			// 
 			// cmdRunNow
 			// 
-			this.cmdRunNow.Location = new System.Drawing.Point(225, 66);
+			this.cmdRunNow.Location = new System.Drawing.Point(225, 82);
 			this.cmdRunNow.Name = "cmdRunNow";
 			this.cmdRunNow.Size = new System.Drawing.Size(99, 23);
 			this.cmdRunNow.TabIndex = 5;
@@ -96,19 +97,30 @@ namespace Nahravadlo
 			// cmdCancel
 			// 
 			this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.cmdCancel.Location = new System.Drawing.Point(12, 66);
+			this.cmdCancel.Location = new System.Drawing.Point(12, 82);
 			this.cmdCancel.Name = "cmdCancel";
 			this.cmdCancel.Size = new System.Drawing.Size(75, 23);
 			this.cmdCancel.TabIndex = 6;
 			this.cmdCancel.Text = "Storno";
 			this.cmdCancel.UseVisualStyleBackColor = true;
 			// 
+			// chkPlayStream
+			// 
+			this.chkPlayStream.AutoSize = true;
+			this.chkPlayStream.Location = new System.Drawing.Point(15, 59);
+			this.chkPlayStream.Name = "chkPlayStream";
+			this.chkPlayStream.Size = new System.Drawing.Size(244, 17);
+			this.chkPlayStream.TabIndex = 7;
+			this.chkPlayStream.Text = "Pøehrávat zároveò ve VLC nahrávaný záznam";
+			this.chkPlayStream.UseVisualStyleBackColor = true;
+			// 
 			// formRecordNow
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.cmdCancel;
-			this.ClientSize = new System.Drawing.Size(336, 101);
+			this.ClientSize = new System.Drawing.Size(336, 116);
+			this.Controls.Add(this.chkPlayStream);
 			this.Controls.Add(this.cmdCancel);
 			this.Controls.Add(this.cmdRunNow);
 			this.Controls.Add(this.cmdBrowse);
@@ -138,5 +150,6 @@ namespace Nahravadlo
 		private System.Windows.Forms.Button cmdRunNow;
 		private System.Windows.Forms.Button cmdCancel;
 		private System.Windows.Forms.SaveFileDialog dialog;
+		private System.Windows.Forms.CheckBox chkPlayStream;
 	}
 }

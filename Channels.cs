@@ -44,8 +44,23 @@ namespace Nahravadlo
 			Channel[] ch = getChannels();
 
 			for (int i = 0; i < ch.Length; i++)
-			{
 				if (ch[i].getUri() == uri) return ch[i];
+			return null;
+		}
+
+		public Channel getChannelFromId(string id)
+		{
+			Channel[] ch = getChannels();
+			id = id.ToLower();
+
+			for (int i = 0; i < ch.Length; i++)
+			{
+				string[] chIds = ch[i].getId().Split(',');
+				foreach(string chId in chIds)
+				{
+					if (chId.Trim().ToLower().CompareTo(id) == 0)
+						return ch[i];
+				}
 			}
 			return null;
 		}
@@ -145,16 +160,17 @@ namespace Nahravadlo
 
 		public Channel[] getDefaultChannels()
 		{
-			return new Channel[]
-				{
-					new Channel("ÈT1", "udp://@239.192.1.20:1234", ""),
-					new Channel("ÈT2", "udp://@239.192.1.21:1234", ""),
-					new Channel("Nova", "udp://@239.192.1.22:1234", ""),
-					new Channel("Prima", "udp://@239.192.1.23:1234", ""),
-					new Channel("ÈT4 Sport", "udp://@239.192.1.24:1234", ""),
-					new Channel("ÈT24", "udp://@239.192.1.25:1234", ""),
-					new Channel("TA3", "udp://@233.10.47.11:1234", "")
-				};
+			return
+				new Channel[]
+					{
+						new Channel("ÈT1", "udp://@239.192.1.20:1234", "ct1.ceskatelevize.cz"),
+						new Channel("ÈT2", "udp://@239.192.1.21:1234", "ct2.ceskatelevize.cz"),
+						new Channel("Nova", "udp://@239.192.1.22:1234", "nova.nova.cz"),
+						new Channel("Prima", "udp://@239.192.1.23:1234", "prima.iprima.cz"),
+						new Channel("ÈT4 Sport", "udp://@239.192.1.24:1234", "ct4sport.ct24.cz"),
+						new Channel("ÈT24", "udp://@239.192.1.25:1234", "ct24.ct24.cz"),
+						new Channel("TA3", "udp://@233.10.47.11:1234", "ta3.ta3.com")
+					};
 		}
 	}
 
@@ -192,8 +208,6 @@ namespace Nahravadlo
 
 	internal class ChannelFormatException : Exception
 	{
-		public ChannelFormatException() : base("Soubor nemá správný formát.")
-		{
-		}
+		public ChannelFormatException() : base("Soubor nemá správný formát.") {}
 	}
 }

@@ -321,7 +321,7 @@ namespace TaskScheduler {
 			set {
 				if (value < taskTrigger.MinutesInterval)
 					throw new ArgumentOutOfRangeException("DurationMinutes", value, "DurationMinutes must be greater than or equal the IntervalMinutes value");
-				taskTrigger.MinutesDuration = (ushort)value;
+				taskTrigger.MinutesDuration = (uint)value;
 				SyncTrigger();
 			}
 		}
@@ -699,7 +699,7 @@ namespace TaskScheduler {
 	/// </summary>
 	public class MonthlyDOWTrigger : StartableTrigger {
 		/// <summary>
-		/// Creates a MonthlyDOWTrigger that fires every month.
+		/// Creates a MonthlyDOWTrigger that fires during specified months only.
 		/// </summary>
 		/// <param name="hour">Hour of day trigger will fire.</param>
 		/// <param name="minutes">Minute of the hour trigger will fire.</param>
@@ -715,7 +715,7 @@ namespace TaskScheduler {
 		}
 
 		/// <summary>
-		/// Creates a MonthlyDOWTrigger that fires during specified months only.
+		/// Creates a MonthlyDOWTrigger that fires every month.
 		/// </summary>
 		/// <param name="hour">Hour of day trigger will fire.</param>
 		/// <param name="minutes">Minute of the hour trigger will fire.</param>

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Security;
 using TaskSchedulerInterop;
 
 namespace TaskScheduler {
@@ -549,7 +551,7 @@ namespace TaskScheduler {
 		/// </summary>
 		/// <param name="set">Set the attribute accordingly.</param>
 		private void SetHiddenFileAttr(bool set) {
-			UCOMIPersistFile iFile = (UCOMIPersistFile)iTask;
+			IPersistFile iFile = (IPersistFile)iTask;
 			string fileName;
 			iFile.GetCurFile(out fileName);
 			System.IO.FileAttributes attr;
@@ -565,7 +567,7 @@ namespace TaskScheduler {
 		/// </summary>
 		/// <returns>The value of the attribute.</returns>
 		private bool GetHiddenFileAttr() {
-			UCOMIPersistFile iFile = (UCOMIPersistFile)iTask;
+			IPersistFile iFile = (IPersistFile)iTask;
 			string fileName;
 			iFile.GetCurFile(out fileName);
 			System.IO.FileAttributes attr;
@@ -601,6 +603,7 @@ namespace TaskScheduler {
 			// the interval is unlimited.  Can't figure out how to do that, so use a big time value.
 			stLimit = stAfter;
 			stLimit.Year = (ushort)DateTime.MaxValue.Year;
+			stLimit.Month = 1;  //Just in case stAfter date was Feb 29, but MaxValue.Year is not a leap year!
 			IntPtr pTimes;
 			ushort nFetch = 1;
 			iTask.GetRunTimes(ref stAfter, ref stLimit, ref nFetch, out pTimes);
@@ -639,7 +642,7 @@ namespace TaskScheduler {
 		/// </remarks>
 		/// <exception cref="COMException">Unable to establish existence of the account specified.</exception>
 		public void Save() {
-			UCOMIPersistFile iFile = (UCOMIPersistFile)iTask;
+			IPersistFile iFile = (IPersistFile)iTask;
 			iFile.Save(null, false);
 			SetHiddenFileAttr(Hidden);  //Do the Task Scheduler's work for it because it doesn't reset properly
 		}
@@ -654,7 +657,7 @@ namespace TaskScheduler {
 		/// <param name="name">The new name to be used for this task.</param>
 		/// <exception cref="COMException">Unable to establish existence of the account specified.</exception>
 		public void Save(string name) {
-			UCOMIPersistFile iFile = (UCOMIPersistFile)iTask;
+			IPersistFile iFile = (IPersistFile)iTask;
 			string path;
 			iFile.GetCurFile(out path);
 			string newPath;
@@ -784,7 +787,21 @@ namespace TaskScheduler {
 		/// but the account must be logged on interactively at the time the task runs.</p>
 		/// </remarks>
 		public void SetAccountInformation(string accountName, string password) {
-			iTask.SetAccountInformation(accountName, password);
+			IntPtr pwd = Marshal.StringToCoTaskMemUni(password);
+			iTask.SetAccountInformation(accountName, pwd);
+			Marshal.FreeCoTaskMem(pwd);
+		}
+		/// <summary>
+		/// Overload for SetAccountInformation which permits use of a SecureString for the
+		/// password parameter.  The decoded password will remain in memory only as long as
+		/// needed to be passed to the TaskScheduler service.
+		/// </summary>
+		/// <param name="accountName">Full account name.</param>
+		/// <param name="password">Password for the account.</param>
+		public void SetAccountInformation(string accountName, SecureString password) {
+			IntPtr pwd = Marshal.SecureStringToCoTaskMemUnicode(password);
+			iTask.SetAccountInformation(accountName, pwd);
+			Marshal.ZeroFreeCoTaskMemUnicode(pwd);
 		}
 
 		/// <summary>

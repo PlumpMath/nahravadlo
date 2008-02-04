@@ -1,20 +1,22 @@
 using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 
 namespace Nahravadlo
 {
-	static class Program
+	internal static class Program
 	{
 		/// <summary>
 		/// The main entry point for the application.
 		/// </summary>
 		[STAThread]
-		static void Main()
+		private static void Main(String[] args)
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new formMain());
+			if (args.Length > 0)
+				Application.Run(new formMain(args[0]));
+			else
+				Application.Run(new formMain());
 		}
 	}
 }

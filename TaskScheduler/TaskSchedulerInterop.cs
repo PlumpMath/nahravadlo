@@ -275,7 +275,7 @@ namespace TaskSchedulerInterop {
 		void GetErrorRetryInterval([Out] out ushort RetryInterval);
 		void SetFlags([In] uint Flags);
 		void GetFlags([Out] out uint Flags);
-		void SetAccountInformation([In, MarshalAs(UnmanagedType.LPWStr)] string AccountName, [In, MarshalAs(UnmanagedType.LPWStr)] string Password);
+		void SetAccountInformation([In, MarshalAs(UnmanagedType.LPWStr)] string AccountName, [In] IntPtr Password);
 		void GetAccountInformation(out System.IntPtr  AccountName);
 		void SetApplicationName([In, MarshalAs(UnmanagedType.LPWStr)] string ApplicationName);
 		void GetApplicationName(out System.IntPtr ApplicationName);

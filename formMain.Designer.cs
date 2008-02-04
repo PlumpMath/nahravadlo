@@ -15,6 +15,7 @@ namespace Nahravadlo
 		{
 			if (disposing && (components != null))
 			{
+				SCHEDULES.Dispose();
 				components.Dispose();
 			}
 			base.Dispose(disposing);
@@ -32,6 +33,7 @@ namespace Nahravadlo
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formMain));
 			this.lst = new System.Windows.Forms.ListBox();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
+			this.btnStopRecording = new System.Windows.Forms.Button();
 			this.dteEnd = new System.Windows.Forms.DateTimePicker();
 			this.txtStatus = new System.Windows.Forms.TextBox();
 			this.label7 = new System.Windows.Forms.Label();
@@ -73,6 +75,7 @@ namespace Nahravadlo
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.btnStopRecording);
 			this.groupBox1.Controls.Add(this.dteEnd);
 			this.groupBox1.Controls.Add(this.txtStatus);
 			this.groupBox1.Controls.Add(this.label7);
@@ -98,6 +101,17 @@ namespace Nahravadlo
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Informace o nahrávání";
 			// 
+			// btnStopRecording
+			// 
+			this.btnStopRecording.Enabled = false;
+			this.btnStopRecording.Location = new System.Drawing.Point(340, 149);
+			this.btnStopRecording.Name = "btnStopRecording";
+			this.btnStopRecording.Size = new System.Drawing.Size(101, 26);
+			this.btnStopRecording.TabIndex = 18;
+			this.btnStopRecording.Text = "Zrušit nahrávání";
+			this.btnStopRecording.UseVisualStyleBackColor = true;
+			this.btnStopRecording.Click += new System.EventHandler(this.btnStopRecording_Click);
+			// 
 			// dteEnd
 			// 
 			this.dteEnd.CustomFormat = "dd. MM. yyyy - HH:mm";
@@ -115,7 +129,7 @@ namespace Nahravadlo
 			this.txtStatus.BorderStyle = System.Windows.Forms.BorderStyle.None;
 			this.txtStatus.Location = new System.Drawing.Point(167, 156);
 			this.txtStatus.Name = "txtStatus";
-			this.txtStatus.Size = new System.Drawing.Size(274, 13);
+			this.txtStatus.Size = new System.Drawing.Size(173, 13);
 			this.txtStatus.TabIndex = 16;
 			this.txtStatus.Text = "Nahrávání nebylo ještì založeno.";
 			// 
@@ -279,9 +293,9 @@ namespace Nahravadlo
 			this.label1.AutoSize = true;
 			this.label1.Location = new System.Drawing.Point(3, 51);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(84, 13);
+			this.label1.Size = new System.Drawing.Size(46, 13);
 			this.label1.TabIndex = 0;
-			this.label1.Text = "Kanál / Stanice:";
+			this.label1.Text = "Stanice:";
 			// 
 			// menuStrip1
 			// 
@@ -291,6 +305,7 @@ namespace Nahravadlo
             this.recordNowMenuItem});
 			this.menuStrip1.Location = new System.Drawing.Point(0, 0);
 			this.menuStrip1.Name = "menuStrip1";
+			this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
 			this.menuStrip1.Size = new System.Drawing.Size(713, 24);
 			this.menuStrip1.TabIndex = 2;
 			this.menuStrip1.Text = "menuStrip1";
@@ -377,6 +392,7 @@ namespace Nahravadlo
 		private System.Windows.Forms.ToolStripMenuItem recordNowMenuItem;
 		private System.Windows.Forms.DateTimePicker dteEnd;
 		private System.Windows.Forms.ToolStripMenuItem aboutMenuItem;
+		private System.Windows.Forms.Button btnStopRecording;
 	}
 }
 

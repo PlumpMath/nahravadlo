@@ -14,6 +14,8 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartWorkingDirectory>C:\_programovani\.net\Nahravadlo\bin\Debug\</StartWorkingDirectory>
+    <StartWorkingDirectory>.</StartWorkingDirectory>
+    <StartArguments>
+    </StartArguments>
   </PropertyGroup>
 </Project>

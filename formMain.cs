@@ -1,11 +1,9 @@
 using System;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-using System.Security.Principal;
-using System.Text.RegularExpressions;
-using System.Threading;
+using System.Web;
 using System.Windows.Forms;
-using TaskScheduler;
 
 namespace Nahravadlo
 {
@@ -18,22 +16,57 @@ namespace Nahravadlo
 		public static bool useMpegTS = false;
 		public static ComboBox comboChannels;
 
-		private Settings settings;
+		public static Settings SETTING;
+
+		private bool forceClose = false;
+
+		public static Schedules SCHEDULES;
 
 		public formMain()
 		{
 			InitializeComponent();
 
 			Application.EnableVisualStyles();
+
+			String[] ver = Application.ProductVersion.Split('.');
+			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
+
+			LoadConfig();
 			comboChannels = cmbProgram;
+
+			SCHEDULES = new Schedules(vlc, defaultDirectory);
+		}
+
+		public formMain(String url) : this()
+		{
+			//pokud se zavrel nastavovaci dialog bez ulozeni, ukoncime funkci
+			if (forceClose) return;
+
+			if (url == null) return;
+			Uri uri = new Uri(url);
+			String channelId = uri.Host;
+			String programmName = Uri.UnescapeDataString(uri.AbsolutePath).Substring(1);
+			NameValueCollection qItems = HttpUtility.ParseQueryString(uri.Query);
+
+			formQuickAdd f =
+				new formQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]),
+				                 Utils.ParseISO8601DateTime(qItems["stop"]), 0);
+			f.Text = Text + " - Rychlé nahrávání";
+			DialogResult res = f.ShowDialog(this);
+
+			if (Equals(res, DialogResult.Abort) || Equals(res, DialogResult.OK))
+				forceClose = true;
 		}
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
-			String[] ver = Application.ProductVersion.Split('.');
+			//pokud potrebujeme nahle ukoncit, ukoncime
+			if (forceClose)
+			{
+				Close();
+				return;
+			}
 
-			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
-			LoadConfig();
 			RefreshList();
 			dteBegin.Value = DateTime.Now;
 			dteEnd.Value = dteBegin.Value.AddMinutes(1);
@@ -44,61 +77,29 @@ namespace Nahravadlo
 		{
 			lst.Items.Clear();
 
-			ScheduledTasks st = new ScheduledTasks();
-			string[] taskNames = st.GetTaskNames();
-			foreach(string name in taskNames)
-			{
-				try
-				{
-					if (name.Substring(0, 12).CompareTo("Nahrávání - ") == 0)
-					{
-						Task t = st.OpenTask(name);
-						lst.Items.Add(new ListContainer(t.Name.Substring(12), name));
-						t.Close();
-					}
-				} catch
-				{
-				}
-			}
-
-			st.Dispose();
+			foreach(string name in SCHEDULES.getAllNames())
+				lst.Items.Add(name);
 		}
 
 		private void lst_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			ListContainer item = (ListContainer) lst.SelectedItem;
+			string itemName = (string) lst.SelectedItem;
 			try
 			{
-				ScheduledTasks st = new ScheduledTasks();
+				Job job = SCHEDULES.get(itemName);
+				txtName.Text = itemName;
 
-				Task t = st.OpenTask(item.key);
-				txtName.Text = item.name;
+				dteBegin.Value = job.Start;
+				numLength.Value = job.Length;
 
-				foreach(Trigger tr in t.Triggers)
-				{
-					if (tr is RunOnceTrigger)
-					{
-						DateTime dt = (tr as RunOnceTrigger).BeginDate;
+				cmbProgram.SelectedIndex = getChannelIndexFromUri(job.Uri);
+				txtFilename.Text = job.Filename;
 
-						dteBegin.Value = new DateTime(dt.Year, dt.Month, dt.Day, (tr as RunOnceTrigger).StartHour, (tr as RunOnceTrigger).StartMinute, 0);
-					}
-				}
-
-				numLength.Value = (decimal) t.MaxRunTime.TotalMinutes;
-
-				Regex r = new Regex("(?<uri>(udp://([0-9:@.]+))).*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))(\"|\"}})");
-				Match m = r.Match(t.Parameters);
-				cmbProgram.SelectedIndex = getChannelIndexFromUri(m.Groups["uri"].Value);
-				txtFilename.Text = m.Groups["filename"].Value;
-
-				txtStatus.Text = StatusToText(t.Status);
-
-				t.Close();
-
-				st.Dispose();
-			} catch(Exception)
+				txtStatus.Text = job.StatusText;
+				btnStopRecording.Enabled = (job.Status == JobStatus.Running);
+			} catch
 			{
-				lst.Items.Remove(item);
+				lst.Items.Remove(itemName);
 			}
 		}
 
@@ -114,88 +115,96 @@ namespace Nahravadlo
 
 		private void cmdAdd_Click(object sender, EventArgs e)
 		{
-			ScheduledTasks st = new ScheduledTasks();
 			try
 			{
-				Task t = st.CreateTask("Nahrávání - " + txtName.Text);
-				if (t != null)
+				using(Job job = SCHEDULES.create(txtName.Text))
 				{
-					t.Triggers.Add(new RunOnceTrigger(dteBegin.Value));
-					t.ApplicationName = vlc;
+					job.Start = dteBegin.Value;
+					job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+					job.Filename = txtFilename.Text;
 
-					if (useMpegTS)
-					{
-						t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
-					} else
-					{
-						t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
-					}
-					t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);
+					job.UseMPEGTS = useMpegTS;
 
-					if (username.Length == 0) username = WindowsIdentity.GetCurrent().Name.ToString();
-					t.Flags = (password == null || password.Length == 0) ? TaskFlags.RunOnlyIfLoggedOn : 0;
-
-					if (password != null && password.Length == 0) password = null;
-					t.SetAccountInformation(username, password);
-					t.WorkingDirectory = defaultDirectory;
-					t.Flags |= TaskFlags.DeleteWhenDone;
-
-					String name = t.Name;
-
-					t.Save();
-					t.Close();
-
-					int index = lst.Items.Add(new ListContainer(name.Substring(12), name + ".job"));
-					lst.SelectedIndex = index;
-
-					if (st.OpenTask("Nahrávání - " + txtName.Text) == null)
-						cmdSave.Enabled = false;
-					else
-						cmdSave.Enabled = true;
-
-					cmdDelete.Enabled = cmdSave.Enabled;
-
-					if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || st.OpenTask("Nahrávání - " + txtName.Text) != null)
-						cmdAdd.Enabled = false;
-					else
-						cmdAdd.Enabled = true;
-				} else
-				{
-					MessageBox.Show("Nepovedlo se pøidat nahrávání.\n\nUjistìte se, že název nahrávání neobsahuje následující znaky:\n/ \\ : * ? \" < > |", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					job.Length = (int) numLength.Value;
+					job.SetUsernameAndPassword(username, password);
 				}
-			} catch(Exception ex)
+
+				lst.SelectedIndex = lst.Items.Add(txtName.Text);
+
+				if (SCHEDULES.exist(txtName.Text))
+					cmdSave.Enabled = false;
+				else
+					cmdSave.Enabled = true;
+
+				cmdDelete.Enabled = cmdSave.Enabled;
+
+				if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || SCHEDULES.exist(txtName.Text))
+					cmdAdd.Enabled = false;
+				else
+					cmdAdd.Enabled = true;
+			} catch
 			{
-				MessageBox.Show(ex.ToString());
+				MessageBox.Show(
+					"Nepovedlo se pøidat nahrávání.\n\nUjistìte se, že název nahrávání neobsahuje následující znaky:\n/ \\ : * ? \" < > |",
+					Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
-			st.Dispose();
 		}
 
 		public void LoadConfig()
 		{
+			//zjistime cestu k profilu s nastavenim
+			string appSettingsPath =
+				Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Nahravadlo");
+			//vytvorime adresar
+			Directory.CreateDirectory(appSettingsPath);
+
 			try
 			{
-				if (!File.Exists(string.Format(@"{0}\config.xml", Application.StartupPath)))
+				//nastavime cestu k souboru s nastavenim
+				Settings.default_filename = Path.Combine(appSettingsPath, "config.xml");
+
+				try
 				{
-					throw new Exception("Nepovedlo se naèíst soubor config.xml.\n\nSoubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
+					// pokud mame soubor config.xml u aplikace a neexistuje tento soubor v profilu s natavenim, zkopirujeme ho
+					// a pokusime se ho smazat u aplikace
+					if (!File.Exists(Settings.default_filename) && File.Exists(Path.Combine(Application.StartupPath, "config.xml")))
+					{
+						File.Copy(Path.Combine(Application.StartupPath, "config.xml"), Settings.default_filename);
+						File.Delete(Path.Combine(Application.StartupPath, "config.xml"));
+					}
+				} catch {}
+
+				//pokud i presto soubor s nastavenim neexistuje, vyhodime vyjjimku
+				if (!File.Exists(Settings.default_filename))
+				{
+					throw new Exception(
+						"Nepovedlo se naèíst soubor config.xml.\n\nSoubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
 				}
 
-				Settings.default_filename = Application.StartupPath + @"\config.xml";
-				settings = Settings.getInstance();
+				SETTING = Settings.getInstance();
 
-				vlc = settings.getString("nahravadlo/config/vlc", "");
+				vlc = SETTING.getString("nahravadlo/config/vlc", "");
 				if (vlc.Length == 0)
-					throw new Exception("Chyba v soubor config.xml.\n\nNení nastavena cesta k exe souboru programu VLC.\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.");
+				{
+					throw new Exception(
+						"Chyba v soubor config.xml.\n\nNení nastavena cesta k exe souboru programu VLC.\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.");
+				}
 
 				if (!File.Exists(vlc))
-					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", vlc));
+				{
+					throw new Exception(
+						string.Format(
+							"Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.",
+							vlc));
+				}
 
-				username = settings.getString("nahravadlo/config/login/username", "");
-				password = settings.getString("nahravadlo/config/login/password", "");
-				defaultDirectory = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
+				username = SETTING.getString("nahravadlo/config/login/username", "");
+				password = SETTING.getString("nahravadlo/config/login/password", "");
+				defaultDirectory = SETTING.getString("nahravadlo/config/defaultdirectory", @"C:\");
 
-				useMpegTS = settings.getBool("nahravadlo/config/use_mpegts", false);
+				useMpegTS = SETTING.getBool("nahravadlo/config/use_mpegts", false);
 
-				Channel[] channels = new Channels(settings).getChannels();
+				Channel[] channels = new Channels(SETTING).getChannels();
 
 				cmbProgram.Items.Clear();
 				foreach(Channel channel in channels) cmbProgram.Items.Add(channel);
@@ -203,18 +212,16 @@ namespace Nahravadlo
 				if (cmbProgram.Items.Count > 0) cmbProgram.SelectedIndex = 0;
 			} catch(Exception ex)
 			{
-				MessageBox.Show(ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-				//Application.Exit();
+				//zobrazime zpravu o chybe, pravdepodobne problem s nastavenim
+				MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+				// a zobrazime dialog s nastavenim
 				formSettings f = new formSettings();
 				f.Text = "Nastavení programu " + Text;
-				f.ShowDialog(this);
-				if (f.DialogResult == DialogResult.OK)
-				{
+				if (Equals(f.ShowDialog(this), DialogResult.OK))
 					LoadConfig();
-				} else
-				{
-					Application.Exit();
-				}
+				else
+					forceClose = true;
 			}
 		}
 
@@ -222,21 +229,18 @@ namespace Nahravadlo
 		{
 			txtFilename.Text = txtName.Text + ".mpg";
 
-			ScheduledTasks st = new ScheduledTasks();
-
-			if (st.OpenTask("Nahrávání - " + txtName.Text) == null)
+			if (!SCHEDULES.exist(txtName.Text))
 				cmdSave.Enabled = false;
 			else
 				cmdSave.Enabled = true;
 
 			cmdDelete.Enabled = cmdSave.Enabled;
 
-			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || st.OpenTask("Nahrávání - " + txtName.Text) != null)
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
+			    SCHEDULES.exist(txtName.Text))
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;
-
-			st.Dispose();
 		}
 
 		private void cmdBrowse_Click(object sender, EventArgs e)
@@ -252,70 +256,50 @@ namespace Nahravadlo
 
 		private void cmdSave_Click(object sender, EventArgs e)
 		{
-			ListContainer item = (ListContainer) lst.SelectedItem;
+			string itemName = (string) lst.SelectedItem;
 			try
 			{
-				ScheduledTasks st = new ScheduledTasks();
-
-				Task t = st.OpenTask(item.key);
-				t.Triggers.Clear();
-				t.Triggers.Add(new RunOnceTrigger(dteBegin.Value));
-				t.ApplicationName = vlc;
-
-				if (useMpegTS)
+				using(Job job = SCHEDULES.get(itemName))
 				{
-					t.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
-				} else
-				{
-					t.Parameters = string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", ((Channel) cmbProgram.SelectedItem).getUri(), txtFilename.Text);
+					job.Start = dteBegin.Value;
+					job.Length = (int) numLength.Value;
+					job.UseMPEGTS = useMpegTS;
+					job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+					job.Filename = txtFilename.Text;
+
+					job.SetUsernameAndPassword(username, password);
 				}
-
-				t.MaxRunTime = new TimeSpan(0, (int) numLength.Value, 0);
-
-				if (username.Length == 0)
-					username = WindowsIdentity.GetCurrent().Name.ToString();
-				t.Flags = (password == null || password.Length == 0) ? TaskFlags.RunOnlyIfLoggedOn : 0;
-
-				if (password != null && password.Length == 0)
-					password = null;
-				t.SetAccountInformation(username, password);
-				t.WorkingDirectory = defaultDirectory;
-				t.Flags |= TaskFlags.DeleteWhenDone;
-
-				t.Save();
-				t.Close();
-			} catch(Exception)
+			} catch
 			{
-				lst.Items.Remove(item);
+				lst.Items.Remove(itemName);
+			} finally
+			{
+				if (lst.Items.Count > 0) lst.SelectedIndex = 0;
 			}
 		}
 
 		private void cmdDelete_Click(object sender, EventArgs e)
 		{
-			ScheduledTasks st = new ScheduledTasks();
-			ListContainer item = (ListContainer) lst.SelectedItem;
+			string itemName = (string) lst.SelectedItem;
+
+			int selectedIndex = lst.SelectedIndex;
 
 			try
 			{
-				Task t = st.OpenTask(item.key);
-				if (t.Status == TaskStatus.Running)
+				using(Job job = SCHEDULES.get(itemName))
 				{
-					t.Terminate();
-					Thread.Sleep(1000);
+					if (job.Status == JobStatus.Running)
+						job.Terminate();
 				}
-				/*t.Save();*/
-				t.Close();
-			} catch(Exception ex)
-			{
-				MessageBox.Show(ex.ToString());
-			}
+			} catch {}
 
 			try
 			{
-				st.DeleteTask(item.key);
-			} catch(Exception)
-			{
-			}
+				SCHEDULES.remove(itemName);
+			} catch {}
+
+			lst.Items.Remove(itemName);
+
 			txtName.Text = "";
 			cmbProgram.SelectedIndex = 0;
 			dteBegin.Value = DateTime.Now;
@@ -323,35 +307,14 @@ namespace Nahravadlo
 			numLength.Value = 1;
 			txtFilename.Text = "";
 			txtStatus.Text = "Nahrávání nebylo ještì založeno.";
-			lst.Items.Remove(item);
 
-			st.Dispose();
-		}
-
-		public string StatusToText(TaskStatus status)
-		{
-			switch(status)
+			if (lst.Items.Count > 0)
 			{
-				case TaskStatus.Disabled:
-					return "Zakázaný";
-				case TaskStatus.NeverRun:
-					return "Pøipraveno k nahrávání";
-				case TaskStatus.NoMoreRuns:
-					return "Nenaplánováno další spuštìní";
-				case TaskStatus.NoTriggers:
-					return "Nenaplánováno";
-				case TaskStatus.NoTriggerTime:
-					return "Nenaplánováno";
-				case TaskStatus.NotScheduled:
-					return "Nenaplánováno";
-				case TaskStatus.Ready:
-					return "Pøipraveno k nahrávání";
-				case TaskStatus.Running:
-					return "Bìží";
-				case TaskStatus.Terminated:
-					return "Neúspìšnì vykonáno";
+				if (lst.Items.Count > selectedIndex)
+					lst.SelectedIndex = selectedIndex;
+				else if (lst.Items.Count == selectedIndex)
+					lst.SelectedIndex = lst.Items.Count - 1;
 			}
-			return "";
 		}
 
 		private void optionMenuItem_Click(object sender, EventArgs e)
@@ -360,45 +323,29 @@ namespace Nahravadlo
 			f.Text = "Nastavení programu " + Text;
 			f.ShowDialog(this);
 			if (f.DialogResult == DialogResult.OK)
-			{
 				LoadConfig();
-			}
 		}
 
 		private void timer_Tick(object sender, EventArgs e)
 		{
-			ScheduledTasks st = new ScheduledTasks();
-			string[] taskNames = st.GetTaskNames();
+			string[] names = SCHEDULES.getAllNames().ToArray();
 
-			foreach(string name in taskNames)
+			foreach(string name in names)
 			{
-				try
-				{
-					if (name.Substring(0, 12).CompareTo("Nahrávání - ") == 0)
-					{
-						Task t = st.OpenTask(name);
-						string origName = t.Name.Substring(12);
-						if (lst.FindStringExact(origName) == -1)
-						{
-							lst.Items.Add(new ListContainer(origName, name));
-						}
-						t.Close();
-					}
-				} catch
-				{
-				}
+				if (lst.FindStringExact(name) == -1)
+					lst.Items.Add(name);
 			}
 
 			if (lst.Items.Count > 0)
 			{
-				ListContainer[] lc = new ListContainer[lst.Items.Count];
-				lst.Items.CopyTo(lc, 0);
+				string[] items = new string[lst.Items.Count];
+				lst.Items.CopyTo(items, 0);
 
-				foreach(ListContainer container in lc)
+				foreach(string item in items)
 				{
-					if (Array.IndexOf(taskNames, container.key) == -1)
+					if (Array.IndexOf(names, item) == -1)
 					{
-						if (lst.SelectedItem == container)
+						if (Equals(lst.SelectedItem, item))
 						{
 							txtName.Text = "";
 							cmbProgram.SelectedIndex = 0;
@@ -407,24 +354,25 @@ namespace Nahravadlo
 							numLength.Value = 1;
 							txtFilename.Text = "";
 							txtStatus.Text = "Nahrávání nebylo ještì založeno.";
+							btnStopRecording.Enabled = false;
 						}
-						lst.Items.Remove(container);
+						lst.Items.Remove(item);
+					} else
+					{
+						if (Equals(lst.SelectedItem, item))
+						{
+							using(Job job = SCHEDULES.get(item))
+							{
+								txtStatus.Text = job.StatusText;
+								btnStopRecording.Enabled = (job.Status == JobStatus.Running);
+							}
+						}
 					}
 
-					if (lst.SelectedItem == container)
-					{
-						try
-						{
-							Task t = st.OpenTask(container.key);
-							txtStatus.Text = StatusToText(t.Status);
-							t.Close();
-						} catch(Exception)
-						{
-						}
-					}
+					if (Equals(lst.SelectedItem, item) && !SCHEDULES.exist(item))
+						lst.Items.Remove(item);
 				}
 			}
-			st.Dispose();
 		}
 
 		private void RecordNowMenuItem_Click(object sender, EventArgs e)
@@ -471,28 +419,39 @@ namespace Nahravadlo
 
 		private void aboutMenuItem_Click(object sender, EventArgs e)
 		{
-			string content = "Nahrávadlo {0}.{1}.{2}\n----------------------------------\nNaprogramoval: Arcao\n\nhttp://nahravadlo.arcao.com";
+			string content =
+				"Nahrávadlo {0}.{1}.{2}\n----------------------------------\nNaprogramoval: Arcao\n\nhttp://nahravadlo.arcao.com";
 			String[] ver = Application.ProductVersion.Split('.');
 			MessageBox.Show(String.Format(content, ver[0], ver[1], ver[2]), Text, MessageBoxButtons.OK,
 			                MessageBoxIcon.Information);
-			
+		}
+
+		private void btnStopRecording_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				using(Job job = SCHEDULES.get((string) lst.SelectedItem))
+				{
+					job.Terminate();
+				}
+			} catch(Exception) {}
 		}
 	}
 
-	public class ListContainer
-	{
-		public string name;
-		public string key;
+	//public class ListContainer
+	//{
+	//    public string name;
+	//    public string key;
 
-		public ListContainer(string name, string key)
-		{
-			this.name = name;
-			this.key = key;
-		}
+	//    public ListContainer(string name, string key)
+	//    {
+	//        this.name = name;
+	//        this.key = key;
+	//    }
 
-		public override string ToString()
-		{
-			return name;
-		}
-	}
+	//    public override string ToString()
+	//    {
+	//        return name;
+	//    }
+	//}
 }

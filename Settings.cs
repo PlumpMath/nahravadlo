@@ -23,18 +23,14 @@ namespace Nahravadlo
 			Load(filename);
 		}
 
-		private Settings() : this(default_filename)
-		{
-		}
+		private Settings() : this(default_filename) {}
 
 		public void Load(string filename)
 		{
 			try
 			{
 				xmlDoc.Load(filename);
-			} catch
-			{
-			}
+			} catch {}
 		}
 
 		public void Load()
@@ -104,8 +100,7 @@ namespace Nahravadlo
 			//{
 			createSelectNodes(xmlDoc, name).InnerText = value;
 			//} catch(Exception)
-			{
-			}
+			{}
 		}
 
 		public void setInt(string name, int value)
@@ -113,9 +108,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception)
-			{
-			}
+			} catch(Exception) {}
 		}
 
 		public void setBool(string name, bool value)
@@ -123,9 +116,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception)
-			{
-			}
+			} catch(Exception) {}
 		}
 
 		public void setFloat(string name, float value)
@@ -133,9 +124,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception)
-			{
-			}
+			} catch(Exception) {}
 		}
 
 		public XmlNode createSelectNodes(XmlDocument xmlDoc, string path)
@@ -143,14 +132,11 @@ namespace Nahravadlo
 			if (path.Substring(0, 2) == "//") path = path.Substring(2);
 
 			if (xmlDoc.SelectNodes(path).Count != 0)
-			{
 				return xmlDoc.SelectSingleNode(path);
-			}
 
 			if (path.IndexOf("/") == -1)
-			{
 				return xmlDoc.AppendChild(xmlDoc.CreateElement(path));
-			} else
+			else
 			{
 				String[] path_items = path.Split('/');
 				XmlNode node = xmlDoc;
