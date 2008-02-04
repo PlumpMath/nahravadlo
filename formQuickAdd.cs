@@ -145,5 +145,16 @@ namespace Nahravadlo
 			DialogResult = DialogResult.OK;
 			Close();
 		}
+
+		private void cmdBrowse_Click(object sender, EventArgs e)
+		{
+			dialog.InitialDirectory = formMain.defaultDirectory;
+			dialog.FileName = txtFilename.Text;
+			dialog.OverwritePrompt = true;
+			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
+			dialog.ValidateNames = true;
+			if (dialog.ShowDialog() == DialogResult.OK)
+				txtFilename.Text = dialog.FileName;
+		}
 	}
 }

@@ -47,6 +47,7 @@ namespace Nahravadlo
 			this.cmdAdd = new System.Windows.Forms.Button();
 			this.cmdAddAndClose = new System.Windows.Forms.Button();
 			this.pictureBox1 = new System.Windows.Forms.PictureBox();
+			this.dialog = new System.Windows.Forms.SaveFileDialog();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize) (this.numLength)).BeginInit();
 			((System.ComponentModel.ISupportInitialize) (this.pictureBox1)).BeginInit();
@@ -94,6 +95,7 @@ namespace Nahravadlo
 			this.cmdBrowse.TabIndex = 11;
 			this.cmdBrowse.Text = "...";
 			this.cmdBrowse.UseVisualStyleBackColor = true;
+			this.cmdBrowse.Click += new System.EventHandler(this.cmdBrowse_Click);
 			// 
 			// txtFilename
 			// 
@@ -299,5 +301,6 @@ namespace Nahravadlo
         private System.Windows.Forms.ComboBox cmbProgram;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.PictureBox pictureBox1;
+		private System.Windows.Forms.SaveFileDialog dialog;
     }
 }
