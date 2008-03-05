@@ -7,18 +7,24 @@ namespace Nahravadlo
 	public partial class formQuickAdd : Form
 	{
 		private bool terminate = false;
+		private Settings settings;
 
 		public bool Terminate
 		{
 			get { return terminate; }
 		}
+		
+		public formQuickAdd()
+		{
+			settings = Settings.getInstance();
+		}
 
-		public formQuickAdd(string gid, string name, DateTime start, DateTime stop, long length)
+		public formQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
 		{
 			InitializeComponent();
 			Application.EnableVisualStyles();
 
-			Channels channels = new Channels(formMain.SETTING);
+			Channels channels = new Channels(settings);
 
 			//Naplneni kanalu
 			foreach(Channel channel in channels.getChannels())
@@ -38,7 +44,7 @@ namespace Nahravadlo
 			dteBegin.Value = start;
 
 			//posuneme konec nahravani, pokud je to nastaveny
-			stop += TimeSpan.FromMinutes(formMain.SETTING.getInt("nahravadlo/config/add_schedule_minutes", 0));
+			stop += TimeSpan.FromMinutes(settings.getInt("nahravadlo/config/add_schedule_minutes", 0));
 			//nastavime konec nahravani
 			dteEnd.Value = stop;
 		}
@@ -118,8 +124,8 @@ namespace Nahravadlo
 				job.Filename = txtFilename.Text;
 				job.UseMPEGTS = formMain.useMpegTS;
 
-				string username = formMain.SETTING.getString("nahravadlo/config/login/username", "");
-				string password = formMain.SETTING.getString("nahravadlo/config/login/password", "");
+				string username = settings.getString("nahravadlo/config/login/username", "");
+				string password = settings.getString("nahravadlo/config/login/password", "");
 
 				job.SetUsernameAndPassword(username, password);
 			}
@@ -137,8 +143,8 @@ namespace Nahravadlo
 				job.Filename = txtFilename.Text;
 				job.UseMPEGTS = formMain.useMpegTS;
 
-				string username = formMain.SETTING.getString("nahravadlo/config/login/username", "");
-				string password = formMain.SETTING.getString("nahravadlo/config/login/password", "");
+				string username = settings.getString("nahravadlo/config/login/username", "");
+				string password = settings.getString("nahravadlo/config/login/password", "");
 
 				job.SetUsernameAndPassword(username, password);
 			}

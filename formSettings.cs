@@ -15,10 +15,7 @@ namespace Nahravadlo
 		{
 			InitializeComponent();
 
-			try
-			{
-				settings = Settings.getInstance();
-			} catch {}
+			settings = Settings.getInstance();
 
 			LoadData();
 			isCanceled = false;
@@ -255,7 +252,9 @@ namespace Nahravadlo
 
 		private void btnScheduleHelp_Click(object sender, EventArgs e)
 		{
-			MessageBox.Show("", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			MessageBox.Show(
+				"Protokol schedule slouží k pøedání všech parametrù pro vytvoøení nahrávání \nz webového prostøedí probramu Nahrávadlo. Tedy jedním kliknutím lze pøedvyplnit políèka \npro založení nového nahrávání. Více informací naleznete v nápovìdì programu.",
+				Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
 	}
 }

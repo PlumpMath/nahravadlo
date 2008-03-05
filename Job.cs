@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -80,7 +81,7 @@ namespace Nahravadlo
 			{
 				Regex r =
 					new Regex(
-						"(?<uri>(udp://([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
+						"(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
 				Match m = r.Match(task.Parameters);
 				return m.Groups["uri"].Value;
 			}
@@ -149,7 +150,7 @@ namespace Nahravadlo
 			{
 				Regex r =
 					new Regex(
-						"(?<uri>(udp://([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
+						"(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
 				Match m = r.Match(task.Parameters);
 				return m.Groups["filename"].Value;
 			}
@@ -274,6 +275,7 @@ namespace Nahravadlo
 			this.task = task;
 			this.task.ApplicationName = vlcFilename;
 			this.task.WorkingDirectory = workingDirectory;
+			// HACK chtelo by tro moznost nastavovat prioritu uzivatelsky
 
 			useMPEGTS = task.Parameters.Contains("dst=std{access=file,mux=ps,");
 
@@ -287,6 +289,7 @@ namespace Nahravadlo
 		/// <param name="filename">Soubor, do ktereho se budou ukladat nahrana data (obraz+zvuk).</param>
 		private void RegenerateParameters(string uri, string filename)
 		{
+			//this.task.Priority = ProcessPriorityClass.AboveNormal;
 			if (useMPEGTS)
 				task.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", uri, filename);
 			else

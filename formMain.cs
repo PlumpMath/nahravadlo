@@ -16,7 +16,7 @@ namespace Nahravadlo
 		public static bool useMpegTS = false;
 		public static ComboBox comboChannels;
 
-		public static Settings SETTING;
+		private Settings setting;
 
 		private bool forceClose = false;
 
@@ -25,8 +25,6 @@ namespace Nahravadlo
 		public formMain()
 		{
 			InitializeComponent();
-
-			Application.EnableVisualStyles();
 
 			String[] ver = Application.ProductVersion.Split('.');
 			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
@@ -50,7 +48,7 @@ namespace Nahravadlo
 
 			formQuickAdd f =
 				new formQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]),
-				                 Utils.ParseISO8601DateTime(qItems["stop"]), 0);
+				                 Utils.ParseISO8601DateTime(qItems["stop"]));
 			f.Text = Text + " - Rychlé nahrávání";
 			DialogResult res = f.ShowDialog(this);
 
@@ -58,7 +56,7 @@ namespace Nahravadlo
 				forceClose = true;
 		}
 
-		private void Form1_Load(object sender, EventArgs e)
+		private void FormMain_Load(object sender, EventArgs e)
 		{
 			//pokud potrebujeme nahle ukoncit, ukoncime
 			if (forceClose)
@@ -181,9 +179,9 @@ namespace Nahravadlo
 						"Nepovedlo se naèíst soubor config.xml.\n\nSoubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
 				}
 
-				SETTING = Settings.getInstance();
+				setting = Settings.getInstance();
 
-				vlc = SETTING.getString("nahravadlo/config/vlc", "");
+				vlc = setting.getString("nahravadlo/config/vlc", "");
 				if (vlc.Length == 0)
 				{
 					throw new Exception(
@@ -198,13 +196,13 @@ namespace Nahravadlo
 							vlc));
 				}
 
-				username = SETTING.getString("nahravadlo/config/login/username", "");
-				password = SETTING.getString("nahravadlo/config/login/password", "");
-				defaultDirectory = SETTING.getString("nahravadlo/config/defaultdirectory", @"C:\");
+				username = setting.getString("nahravadlo/config/login/username", "");
+				password = setting.getString("nahravadlo/config/login/password", "");
+				defaultDirectory = setting.getString("nahravadlo/config/defaultdirectory", @"C:\");
 
-				useMpegTS = SETTING.getBool("nahravadlo/config/use_mpegts", false);
+				useMpegTS = setting.getBool("nahravadlo/config/use_mpegts", false);
 
-				Channel[] channels = new Channels(SETTING).getChannels();
+				Channel[] channels = new Channels(setting).getChannels();
 
 				cmbProgram.Items.Clear();
 				foreach(Channel channel in channels) cmbProgram.Items.Add(channel);
@@ -434,24 +432,7 @@ namespace Nahravadlo
 				{
 					job.Terminate();
 				}
-			} catch(Exception) {}
+			} catch {}
 		}
 	}
-
-	//public class ListContainer
-	//{
-	//    public string name;
-	//    public string key;
-
-	//    public ListContainer(string name, string key)
-	//    {
-	//        this.name = name;
-	//        this.key = key;
-	//    }
-
-	//    public override string ToString()
-	//    {
-	//        return name;
-	//    }
-	//}
 }

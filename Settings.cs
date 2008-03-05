@@ -55,7 +55,7 @@ namespace Nahravadlo
 			try
 			{
 				return xmlDoc.SelectSingleNode(name).InnerText;
-			} catch(Exception)
+			} catch
 			{
 				return default_value;
 			}
@@ -66,7 +66,7 @@ namespace Nahravadlo
 			try
 			{
 				return int.Parse(xmlDoc.SelectSingleNode(name).InnerText);
-			} catch(Exception)
+			} catch
 			{
 				return default_value;
 			}
@@ -77,7 +77,7 @@ namespace Nahravadlo
 			try
 			{
 				return bool.Parse(xmlDoc.SelectSingleNode(name).InnerText);
-			} catch(Exception)
+			} catch
 			{
 				return default_value;
 			}
@@ -88,7 +88,7 @@ namespace Nahravadlo
 			try
 			{
 				return float.Parse(xmlDoc.SelectSingleNode(name).InnerText);
-			} catch(Exception)
+			} catch
 			{
 				return default_value;
 			}
@@ -96,11 +96,10 @@ namespace Nahravadlo
 
 		public void setString(string name, string value)
 		{
-			//try
-			//{
-			createSelectNodes(xmlDoc, name).InnerText = value;
-			//} catch(Exception)
-			{}
+			try
+			{
+				createSelectNodes(xmlDoc, name).InnerText = value;
+			} catch {}
 		}
 
 		public void setInt(string name, int value)
@@ -108,7 +107,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception) {}
+			} catch {}
 		}
 
 		public void setBool(string name, bool value)
@@ -116,7 +115,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception) {}
+			} catch {}
 		}
 
 		public void setFloat(string name, float value)
@@ -124,7 +123,7 @@ namespace Nahravadlo
 			try
 			{
 				createSelectNodes(xmlDoc, name).InnerText = value.ToString();
-			} catch(Exception) {}
+			} catch {}
 		}
 
 		public XmlNode createSelectNodes(XmlDocument xmlDoc, string path)

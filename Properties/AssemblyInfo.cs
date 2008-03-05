@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly : AssemblyTitle("Nahravadlo")]
-[assembly : AssemblyDescription("Aplikace slouzi k nahravani IPTV za pomoci VLC.")]
+[assembly: AssemblyTitle("Aplikace slouží k nahrávání IPTV za pomocí VLC.")]
+[assembly: AssemblyDescription("Aplikace slouží k nahrávání IPTV za pomocí VLC.")]
 [assembly : AssemblyConfiguration("")]
 [assembly : AssemblyCompany("Arcao")]
-[assembly : AssemblyProduct("Nahravadlo")]
+[assembly: AssemblyProduct("Nahrávadlo")]
 [assembly : AssemblyCopyright("Copyright © Arcao 2007-2008")]
 [assembly : AssemblyTrademark("")]
 [assembly : AssemblyCulture("")]

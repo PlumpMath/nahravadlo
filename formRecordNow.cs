@@ -38,7 +38,7 @@ namespace Nahravadlo
 			String dst = "";
 			String mux = "ps";
 
-			if (chkPlayStream.Checked == true) dst = "dst=display,";
+			if (chkPlayStream.Checked) dst = "dst=display,";
 			if (formMain.useMpegTS) mux = "ts";
 
 			//parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbChannel.SelectedItem).getUri(), txtFilename.Text);
@@ -46,9 +46,11 @@ namespace Nahravadlo
 				string.Format("{0} :sout=#duplicate{{{1}dst=std{{access=file,mux={2},url=\"{3}\"}}}}",
 				              ((Channel) cmbChannel.SelectedItem).getUri(), dst, mux, txtFilename.Text);
 
-			MessageBox.Show(parameters);
+			//MessageBox.Show(parameters);
 
-			Process.Start(formMain.vlc, parameters);
+			ProcessStartInfo psi = new ProcessStartInfo(formMain.vlc, parameters);
+			psi.WorkingDirectory = formMain.defaultDirectory;
+			Process.Start(psi).PriorityClass = ProcessPriorityClass.AboveNormal;
 			Close();
 		}
 

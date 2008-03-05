@@ -86,8 +86,10 @@ namespace Nahravadlo
 		public void remove(string name)
 		{
 			if (!scheduledTasks.DeleteTask(NEW_TASK_PREFIX + name))
+			{
 				if (!scheduledTasks.DeleteTask(OLD_TASK_PREFIX + name))
 					throw new JobNotFoundException();
+			}
 		}
 
 		public static void Remove(string name)
@@ -95,8 +97,10 @@ namespace Nahravadlo
 			using(ScheduledTasks st = new ScheduledTasks())
 			{
 				if (!st.DeleteTask(NEW_TASK_PREFIX + name))
+				{
 					if (!st.DeleteTask(OLD_TASK_PREFIX + name))
 						throw new JobNotFoundException();
+				}
 			}
 		}
 
