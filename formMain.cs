@@ -272,7 +272,7 @@ namespace Nahravadlo
 				lst.Items.Remove(itemName);
 			} finally
 			{
-				if (lst.Items.Count > 0) lst.SelectedIndex = 0;
+				//if (lst.Items.Count > 0) lst.SelectedIndex = 0;
 			}
 		}
 

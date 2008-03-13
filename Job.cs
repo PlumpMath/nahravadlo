@@ -289,7 +289,7 @@ namespace Nahravadlo
 		/// <param name="filename">Soubor, do ktereho se budou ukladat nahrana data (obraz+zvuk).</param>
 		private void RegenerateParameters(string uri, string filename)
 		{
-			//this.task.Priority = ProcessPriorityClass.AboveNormal;
+			this.task.Priority = ProcessPriorityClass.High;
 			if (useMPEGTS)
 				task.Parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", uri, filename);
 			else
