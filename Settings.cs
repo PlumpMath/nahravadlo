@@ -135,6 +135,11 @@ namespace Nahravadlo
             catch {}
         }
 
+        public XmlNode createSelectNodes(string path)
+        {
+            return createSelectNodes(xmlDoc, path);
+        }
+
         public XmlNode createSelectNodes(XmlDocument xmlDoc, string path)
         {
             if (path.Substring(0, 2) == "//") path = path.Substring(2);

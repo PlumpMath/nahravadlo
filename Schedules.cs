@@ -1,78 +1,136 @@
 using System;
 using System.Collections.Generic;
-using TaskScheduler;
+using Microsoft.Win32.TaskScheduler;
 
 namespace Nahravadlo
 {
     public class Schedules
     {
-        private const string NEW_TASK_PREFIX = "Nahrávadlo - ";
-        private const string OLD_TASK_PREFIX = "Nahrávání - ";
-        private readonly ScheduledTasks scheduledTasks;
+        public const string TASK_FOLDER_NAME = "Nahrávadlo";
+        public const string NEW_TASK_PREFIX = TASK_FOLDER_NAME + " - ";
+        public const string OLD_TASK_PREFIX = "Nahrávání - ";
 
         private readonly string vlcFilename;
         private readonly string workingDirectory;
+
+        private readonly TaskService taskService;
+        private readonly TaskFolder taskFolder;
 
         public Schedules(string vlcFilename, string workingDirectory)
         {
             this.vlcFilename = vlcFilename;
             this.workingDirectory = workingDirectory;
-            scheduledTasks = new ScheduledTasks();
+            taskService = new TaskService();
+            
+            //U Task Service 2.0 budeme naplanovane nahravani vkladat do vlastni slozky
+            taskFolder = taskService.RootFolder;
+            if (Version == JobVersion.V2)
+            {
+                taskFolder = !FolderExist(taskFolder, TASK_FOLDER_NAME) ? taskFolder.CreateFolder(TASK_FOLDER_NAME, null) : taskFolder.SubFolders[TASK_FOLDER_NAME];
+            }
         }
 
         public Job this[string name]
         {
-            get { return get(name); }
+            get { return Get(name); }
         }
 
-        public Job create(string name)
+        public JobVersion Version
         {
-            Task t = scheduledTasks.CreateTask(NEW_TASK_PREFIX + name);
+            get
+            {
+                return taskService.HighestSupportedVersion == new Version(1, 2) ? JobVersion.V2 : JobVersion.V1;
+            }
+        }
+
+        public Job Create(string name)
+        {
+            TaskDefinition definition = taskService.NewTask();
+            
+            //Task Scheduler 2 musi obsahovat alespon jednu akci
+            definition.Actions.Add(new ExecAction("dummy", "", ""));
+
+            //U Task Scheduler 2.0 se jiz nepouziva prefix, je to rozliseno vlastni slozkou
+            if (Version == JobVersion.V1) name = NEW_TASK_PREFIX + name;
+            
+            Task t = taskFolder.RegisterTaskDefinition(name, definition);
             if (t == null) throw new JobNotCreatedException();
-            return new Job(t, vlcFilename, workingDirectory);
+            return new Job(t, taskFolder, Version, vlcFilename, workingDirectory);
         }
 
-        public Job get(string name)
+        public Job Get(string name)
         {
-            Task t = scheduledTasks.OpenTask(NEW_TASK_PREFIX + name) ?? scheduledTasks.OpenTask(OLD_TASK_PREFIX + name);
+            Task t = null;
+            if (Version == JobVersion.V2)
+            {
+                if (TaskExist(taskFolder, name)) t = taskFolder.Tasks[name];
+            }
+            else
+            {
+                if (TaskExist(taskFolder, NEW_TASK_PREFIX + name))
+                    t = taskFolder.Tasks[NEW_TASK_PREFIX + name];
+                else if (TaskExist(taskFolder, OLD_TASK_PREFIX + name)) 
+                    t = taskFolder.Tasks[OLD_TASK_PREFIX + name];
+            }
             if (t == null) throw new JobNotFoundException();
-            return new Job(t, vlcFilename, workingDirectory);
+            return new Job(t, taskFolder, Version, vlcFilename, workingDirectory);
         }
 
-        public bool exist(String name)
+        public bool Exist(string name)
         {
-            Task t = scheduledTasks.OpenTask(NEW_TASK_PREFIX + name) ?? scheduledTasks.OpenTask(OLD_TASK_PREFIX + name);
-
-            if (t == null) return false;
-
-            t.Close();
-
-            return true;
+            return (TaskExist(taskFolder, name) && Version == JobVersion.V2) ||
+                   TaskExist(taskFolder, NEW_TASK_PREFIX + name) || TaskExist(taskFolder, OLD_TASK_PREFIX + name);
         }
 
-        public List<Job> getAll()
+        private static bool TaskExist(TaskFolder parent, string name)
+        {
+            IEnumerator<Task> tasks = parent.Tasks.GetEnumerator();
+            while (tasks.MoveNext())
+            {
+                if (tasks.Current.Name.Equals(name)) return true;
+            }
+            return false;
+        }
+
+        private static bool FolderExist(TaskFolder parent, string name)
+        {
+            IEnumerator<TaskFolder> folders = parent.SubFolders.GetEnumerator();
+            while(folders.MoveNext())
+            {
+                if (folders.Current.Name.Equals(name)) return true;
+            }
+            return false;
+        }
+
+        public List<Job> GetAll()
         {
             var list = new List<Job>();
-            foreach (String taskName in scheduledTasks.GetTaskNames())
+            foreach (Task task in taskFolder.Tasks)
             {
+                String taskName = task.Name;
                 try
                 {
-                    if (taskName.StartsWith(NEW_TASK_PREFIX))
-                        list.Add(get(taskName.Substring(NEW_TASK_PREFIX.Length)));
+                    if (Version == JobVersion.V2)
+                        list.Add(Get(taskName));
+                    else if (taskName.StartsWith(NEW_TASK_PREFIX))
+                        list.Add(Get(taskName.Substring(NEW_TASK_PREFIX.Length)));
                     else if (taskName.StartsWith(OLD_TASK_PREFIX))
-                        list.Add(get(taskName.Substring(OLD_TASK_PREFIX.Length)));
+                        list.Add(Get(taskName.Substring(OLD_TASK_PREFIX.Length)));
                 }
                 catch (JobNotFoundException) {}
             }
             return list;
         }
 
-        public List<string> getAllNames()
+        public List<string> GetAllNames()
         {
             var list = new List<string>();
-            foreach (String taskName in scheduledTasks.GetTaskNames())
+            foreach (Task task in taskFolder.Tasks)
             {
-                if (taskName.StartsWith(NEW_TASK_PREFIX))
+                String taskName = task.Name;
+                if (Version == JobVersion.V2)
+                    list.Add(taskName);
+                else if (taskName.StartsWith(NEW_TASK_PREFIX))
                     list.Add(DeleteJobExt(taskName.Substring(NEW_TASK_PREFIX.Length)));
                 else if (taskName.StartsWith(OLD_TASK_PREFIX))
                     list.Add(DeleteJobExt(taskName.Substring(OLD_TASK_PREFIX.Length)));
@@ -80,16 +138,17 @@ namespace Nahravadlo
             return list;
         }
 
-        public void remove(string name)
+        public void Remove(string name)
         {
-            if (!scheduledTasks.DeleteTask(NEW_TASK_PREFIX + name))
-            {
-                if (!scheduledTasks.DeleteTask(OLD_TASK_PREFIX + name))
-                    throw new JobNotFoundException();
-            }
+            if (Version == JobVersion.V2 && TaskExist(taskFolder, name))
+                taskFolder.DeleteTask(name);
+            else if (TaskExist(taskFolder, NEW_TASK_PREFIX + name))
+                taskFolder.DeleteTask(NEW_TASK_PREFIX + name);
+            else if (TaskExist(taskFolder, OLD_TASK_PREFIX + name))
+                taskFolder.DeleteTask(OLD_TASK_PREFIX + name);
         }
 
-        public static void Remove(string name)
+        /*public static void Remove(string name)
         {
             using (var st = new ScheduledTasks())
             {
@@ -99,11 +158,11 @@ namespace Nahravadlo
                         throw new JobNotFoundException();
                 }
             }
-        }
+        }*/
 
         public void Dispose()
         {
-            scheduledTasks.Dispose();
+            taskService.Dispose();
         }
 
         private static string DeleteJobExt(string filename)
@@ -126,5 +185,11 @@ namespace Nahravadlo
         public JobNotFoundException() {}
         public JobNotFoundException(string message) : base(message) {}
         public JobNotFoundException(string message, Exception inner) : base(message, inner) {}
+    }
+
+    public enum JobVersion
+    {
+        V1,
+        V2
     }
 }

@@ -1,10 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Principal;
 using System.Text.RegularExpressions;
 using System.Threading;
-using TaskScheduler;
+using Microsoft.Win32.TaskScheduler;
 
 namespace Nahravadlo
 {
@@ -16,27 +15,31 @@ namespace Nahravadlo
         /// <summary>
         /// Uloha je pripravena ke spusteni v zadany cas
         /// </summary>
-        Ready = TaskStatus.Ready,
+        Ready = TaskState.Ready,
         /// <summary>
         /// Uloha prave bezi.
         /// </summary>
-        Running = TaskStatus.Running,
-        /// <summary>
-        /// Uloha neni jiz naplanovana. 
-        /// </summary>
-        NotScheduled = TaskStatus.NotScheduled,
+        Running = TaskState.Running,
+        
+        ///// <summary>
+        ///// Uloha neni jiz naplanovana. 
+        ///// </summary>
+        //NotScheduled = TaskState.Unknown,
+        
         /// <summary>
         /// Uloha je zakazana.
         /// </summary>
-        Disabled = TaskStatus.Disabled,
-        /// <summary>
-        /// Uloha byla nasilne ukoncena.
-        /// </summary>
-        Terminated = TaskStatus.Terminated,
+        Disabled = TaskState.Disabled,
+        
+        ///// <summary>
+        ///// Uloha byla nasilne ukoncena.
+        ///// </summary>
+        //Terminated = TaskState.Terminated,
+        
         /// <summary>
         /// Stav neni znamy.
         /// </summary>
-        Unknown = -1
+        Unknown = TaskState.Unknown
     }
 
     /// <summary>
@@ -45,23 +48,81 @@ namespace Nahravadlo
     public class Job : IDisposable
     {
         private Task task;
-        private bool useMPEGTS;
+        private readonly TaskDefinition definition;
+        private readonly TaskFolder folder;
+        private readonly JobVersion version;
+        
+        private readonly string vlcFilename;
+        private readonly string workingDirectory;
 
         /// <summary>
         /// Konstruktor objektu
         /// </summary>
         /// <param name="task">Naplanovana uloha</param>
+        /// <param name="folder">Misto uloyeni naplanovane ulohy</param>
+        /// <param name="version">Verze naplanovane ulohy</param>
         /// <param name="vlcFilename">Nazev souboru i s cestou k VLC</param>
         /// <param name="workingDirectory">Pracovni adresar, ve kterem bude bezet nahravani.</param>
-        internal Job(Task task, string vlcFilename, string workingDirectory)
+        internal Job(Task task, TaskFolder folder, JobVersion version, string vlcFilename, string workingDirectory)
         {
             this.task = task;
-            this.task.ApplicationName = vlcFilename;
-            this.task.WorkingDirectory = workingDirectory;
+            this.folder = folder;
+            this.version = version;
+            this.vlcFilename = vlcFilename;
+            this.workingDirectory = workingDirectory;
 
-            useMPEGTS = task.Parameters.Contains("dst=std{access=file,mux=ps,");
+            definition = task.Definition;
+            
+            TriggerCollection triggers = definition.Triggers;
+            if (triggers.Count == 1 && triggers[0] is TimeTrigger)
+            {
+                TimeTrigger trigger = (TimeTrigger) triggers[0];
+                Start = trigger.StartBoundary;
+                Length = (int) definition.Settings.ExecutionTimeLimit.TotalMinutes;
+            }
 
-            task.Flags |= TaskFlags.DeleteWhenDone;
+            ActionCollection actions = definition.Actions;
+            if (actions.Count == 1 && actions[0] is ExecAction)
+            {
+                ExecAction action = (ExecAction) actions[0];
+                String args = action.Arguments;
+                if (!String.IsNullOrEmpty(args))
+                {
+                    UseMPEGTS = args.Contains("dst=std{access=file,mux=ps,");
+
+                    var r =
+                            new Regex(
+                                    "(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
+                    Match m = r.Match(action.Arguments);
+                    Uri = m.Groups["uri"].Value;
+                    Filename = m.Groups["filename"].Value;
+                }
+            }
+
+        }
+
+        public void Save(String userName, String password)
+        {
+            //nastaveni hodnot
+            definition.Triggers.Clear();
+            definition.Triggers.Add(new TimeTrigger {StartBoundary = Start, Enabled = true, EndBoundary = End});
+
+            definition.Actions.Clear();
+            String args = UseMPEGTS ? string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", Uri, Filename) : string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", Uri, Filename);
+            definition.Actions.Add(new ExecAction(vlcFilename, args, workingDirectory));
+
+            definition.Settings.ExecutionTimeLimit = TimeSpan.FromMinutes(Length);
+            definition.Settings.Priority = ProcessPriorityClass.High;
+
+            //Pokud je v ceste adresar a neexistuje, vytvorime ho
+            if (Filename.IndexOf('\\') != -1) Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(workingDirectory, Filename)));
+
+            //ulozime ulohu
+            TaskLogonType logonType = String.IsNullOrEmpty(password)
+                                              ? TaskLogonType.InteractiveToken
+                                              : TaskLogonType.Password;
+            if (version == JobVersion.V2) definition.Principal.UserId = userName;
+            task = folder.RegisterTaskDefinition(Name, definition, TaskCreation.CreateOrUpdate, userName, password, logonType, null);
         }
 
         /// <summary>
@@ -72,11 +133,12 @@ namespace Nahravadlo
             get
             {
                 string name = task.Name;
-                if (name.Substring(0, 12).CompareTo("Nahrávání - ") == 0) return name.Substring(12);
-                if (name.Substring(0, 13).CompareTo("Nahrávadlo - ") == 0) return name.Substring(13);
-                return "";
+                if (version == JobVersion.V2) return name;
+                if (name.StartsWith(Schedules.NEW_TASK_PREFIX)) return name.Substring(Schedules.NEW_TASK_PREFIX.Length);
+                if (name.StartsWith(Schedules.OLD_TASK_PREFIX)) return name.Substring(Schedules.OLD_TASK_PREFIX.Length);
+                return String.Empty;
             }
-            set
+            /*set
             {
                 if (value == Name) return;
 
@@ -87,68 +149,23 @@ namespace Nahravadlo
 
                 //smazeme starou naplanovanou ulohu
                 Schedules.Remove(oldName);
-            }
+            }*/
         }
 
         /// <summary>
         /// Vraci/Nastavuje URI zdroje nahravani. Pri zmene provede znovuvytvoreni parametru u naplanovane ulohy.
         /// </summary>
-        public string Uri
-        {
-            get
-            {
-                var r =
-                    new Regex(
-                        "(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
-                Match m = r.Match(task.Parameters);
-                return m.Groups["uri"].Value;
-            }
-            set
-            {
-                RegenerateParameters(value, Filename);
-                task.Save();
-            }
-        }
+        public string Uri { get; set; }
 
         /// <summary>
         /// Vraci/Nastavuje zacatek nahravani.
         /// </summary>
-        public DateTime Start
-        {
-            get
-            {
-                foreach (Trigger tr in task.Triggers)
-                {
-                    if (tr is RunOnceTrigger)
-                    {
-                        DateTime dt = (tr as RunOnceTrigger).BeginDate;
-
-                        return
-                            new DateTime(dt.Year, dt.Month, dt.Day, (tr as RunOnceTrigger).StartHour, (tr as RunOnceTrigger).StartMinute, 0);
-                    }
-                }
-                return new DateTime();
-            }
-            set
-            {
-                task.Triggers.Clear();
-                task.Triggers.Add(new RunOnceTrigger(value));
-                task.Save();
-            }
-        }
+        public DateTime Start { get; set; }
 
         /// <summary>
         /// Vraci/Nastavuje delku nahravani v minutach.
         /// </summary>
-        public int Length
-        {
-            get { return (int) task.MaxRunTime.TotalMinutes; }
-            set
-            {
-                task.MaxRunTime = TimeSpan.FromMinutes(value);
-                task.Save();
-            }
-        }
+        public int Length { get; set; }
 
         /// <summary>
         /// Vraci/Nastavuje konec nahravani. Konec nahravani primarne zavisi na delce nahravani. Pokud se zmeni konec nahravani, prenastavi se delka nahravani. Vracena hodnota se vypocitava jako start nahravani + delka nahravani.
@@ -162,44 +179,12 @@ namespace Nahravadlo
         /// <summary>
         /// Vraci/Nastavuje soubor, do ktereho se budou ukladat nahrana data (obraz+zvuk). Pri zmene provede znovuvytvoreni parametru u naplanovane ulohy.
         /// </summary>
-        public string Filename
-        {
-            get
-            {
-                var r =
-                    new Regex(
-                        "(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
-                Match m = r.Match(task.Parameters);
-                return m.Groups["filename"].Value;
-            }
-            set
-            {
-                RegenerateParameters(Uri, value);
-                task.Save();
-            }
-        }
-
-        /// <summary>
-        /// Vraci uzivatelske jmeno, pod kterym bude spusteno nahravani
-        /// </summary>
-        public string UserName
-        {
-            get { return task.AccountName; }
-        }
+        public string Filename { get; set; }
 
         /// <summary>
         /// Vraci/Nastavuje zda vysledny soubor bude ulozen v kontejneru MPEG TS (true) nebo MPEG PS (false). Pri zmene provede znovuvytvoreni parametru u naplanovane ulohy.
         /// </summary>
-        public bool UseMPEGTS
-        {
-            get { return useMPEGTS; }
-            set
-            {
-                useMPEGTS = value;
-                RegenerateParameters(Uri, Filename);
-                task.Save();
-            }
-        }
+        public bool UseMPEGTS { get; set; }
 
         /// <summary>
         /// Vraci stav ulohy.
@@ -208,21 +193,13 @@ namespace Nahravadlo
         {
             get
             {
-                switch (task.Status)
+                switch (task.State)
                 {
-                    case TaskStatus.Disabled:
+                    case TaskState.Disabled:
                         return JobStatus.Disabled;
-                    case TaskStatus.Running:
+                    case TaskState.Running:
                         return JobStatus.Running;
-                    case TaskStatus.Terminated:
-                        return JobStatus.Terminated;
-                    case TaskStatus.NoTriggers:
-                    case TaskStatus.NoTriggerTime:
-                    case TaskStatus.NotScheduled:
-                    case TaskStatus.NoMoreRuns:
-                        return JobStatus.NotScheduled;
-                    case TaskStatus.NeverRun:
-                    case TaskStatus.Ready:
+                    case TaskState.Ready:
                         return JobStatus.Ready;
                     default:
                         return JobStatus.Unknown;
@@ -243,14 +220,10 @@ namespace Nahravadlo
                         return "Zakázaný";
                     case JobStatus.Ready:
                         return "Pøipraveno k nahrávání";
-                    case JobStatus.NotScheduled:
-                        return "Nenaplánováno";
                     case JobStatus.Running:
                         return "Bìží";
-                    case JobStatus.Terminated:
-                        return "Neúspìšnì vykonáno";
                     default:
-                        return "";
+                        return "Neznámý";
                 }
             }
         }
@@ -268,49 +241,13 @@ namespace Nahravadlo
         #endregion
 
         /// <summary>
-        /// Nastavuje uzivatelske jmeno a heslo, pod kterym bude spusteno nahravani. Pokud predame null nebo prazdny retezec parametru username, nastavi se uzivatelske jmeno prave prihlaseneho uzivatele.
-        /// </summary>
-        /// <param name="username">Uzivatelske jmeno, pod kterym bude spusteno nahravani.</param>
-        /// <param name="password">Heslo uzivatele, pod kterym bude spusteno nahravani.</param>
-        public void SetUsernameAndPassword(string username, string password)
-        {
-            if (string.IsNullOrEmpty(username))
-            {
-                username = WindowsIdentity.GetCurrent().Name;
-                password = null;
-                task.Flags |= TaskFlags.RunOnlyIfLoggedOn;
-            }
-            task.SetAccountInformation(username, password);
-            task.Save();
-        }
-
-        /// <summary>
         /// Vypne bezici ulohu
         /// </summary>
         public void Terminate()
         {
-            task.Terminate();
+            task.Stop();
             //pokud po Terminate zavolame ihned Dispose / Close, tak se uloha nevypne. Pockame tedy sekundu.
             Thread.Sleep(1000);
-        }
-
-        /// <summary>
-        /// Pregeneruje parametry u naplanovane ulohy.
-        /// </summary>
-        /// <param name="uri">URI zdroje nahravani</param>
-        /// <param name="filename">Soubor, do ktereho se budou ukladat nahrana data (obraz+zvuk).</param>
-        private void RegenerateParameters(string uri, string filename)
-        {
-            //pokud je v ceste adresar, ktery neexistuje, tak ho vytvorime
-            if (filename.IndexOf('\\') != -1)
-            {
-                string path = Path.Combine(task.WorkingDirectory, filename);
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-            }
-
-            // HACK chtelo by tro moznost nastavovat prioritu uzivatelsky
-            task.Priority = ProcessPriorityClass.High;
-            task.Parameters = useMPEGTS ? string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", uri, filename) : string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", uri, filename);
         }
 
         /// <summary>

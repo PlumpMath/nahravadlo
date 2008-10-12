@@ -2,6 +2,7 @@ using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
+using System.Security.Principal;
 using System.Web;
 using System.Windows.Forms;
 
@@ -28,16 +29,33 @@ namespace Nahravadlo
         {
             InitializeComponent();
 
-            string[] ver = Application.ProductVersion.Split('.');
+			string[] ver = Application.ProductVersion.Split('.');
             Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
 
             LoadConfig();
             comboChannels = cmbProgram;
 
+        	TestUACElevation(true);
+
+			if (UAC.IsVistaOrHigher() && !String.IsNullOrEmpty(username)
+
             SCHEDULES = new Schedules(vlc, defaultDirectory);
         }
 
-        public formMain(String url) : this()
+		private void TestUACElevation(bool passArgrs)
+		{
+			if (!UAC.IsVistaOrHigher()) return;
+			if (UAC.IsAdmin()) return;
+
+			if (String.IsNullOrEmpty(username)) return;
+			WindowsIdentity identity = new WindowsIdentity(username);
+			if (WindowsIdentity.GetCurrent() != identity)
+			{
+				UAC.RestartElevated(passArgrs);
+			}
+		}
+
+    	public formMain(String url) : this()
         {
             //pokud se zavrel nastavovaci dialog bez ulozeni, ukoncime funkci
             if (forceClose) return;
@@ -76,20 +94,21 @@ namespace Nahravadlo
         {
             lst.Items.Clear();
 
-            foreach (string name in SCHEDULES.getAllNames())
+            foreach (string name in SCHEDULES.GetAllNames())
                 lst.Items.Add(name);
         }
 
         private void lst_SelectedIndexChanged(object sender, EventArgs e)
         {
             var itemName = (string) lst.SelectedItem;
+            if (String.IsNullOrEmpty(itemName)) return;
             try
             {
-                Job job = SCHEDULES.get(itemName);
+                Job job = SCHEDULES.Get(itemName);
                 txtName.Text = itemName;
 
-                dteBegin.Value = job.Start;
-                numLength.Value = job.Length;
+                if (job.Start != DateTime.MinValue) dteBegin.Value = job.Start;
+                numLength.Value = job.Length < 1 ? 1 : job.Length;
 
                 cmbProgram.SelectedIndex = getChannelIndexFromUri(job.Uri);
                 txtFilename.Text = job.Filename;
@@ -97,8 +116,9 @@ namespace Nahravadlo
                 txtStatus.Text = job.StatusText;
                 btnStopRecording.Enabled = (job.Status == JobStatus.Running);
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine(ex);
                 lst.Items.Remove(itemName);
             }
         }
@@ -117,7 +137,7 @@ namespace Nahravadlo
         {
             try
             {
-                using (Job job = SCHEDULES.create(txtName.Text))
+                using (Job job = SCHEDULES.Create(txtName.Text))
                 {
                     job.Start = dteBegin.Value;
                     job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
@@ -126,22 +146,23 @@ namespace Nahravadlo
                     job.UseMPEGTS = useMpegTS;
 
                     job.Length = (int) numLength.Value;
-                    job.SetUsernameAndPassword(username, password);
+                    job.Save(username, password);
                 }
 
                 lst.SelectedIndex = lst.Items.Add(txtName.Text);
 
-                cmdSave.Enabled = !SCHEDULES.exist(txtName.Text);
+                cmdSave.Enabled = !SCHEDULES.Exist(txtName.Text);
 
                 cmdDelete.Enabled = cmdSave.Enabled;
 
-                if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || SCHEDULES.exist(txtName.Text))
+                if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || SCHEDULES.Exist(txtName.Text))
                     cmdAdd.Enabled = false;
                 else
                     cmdAdd.Enabled = true;
             }
-            catch
+            catch(Exception ex)
             {
+                Console.WriteLine(ex);
                 MessageBox.Show(
                     "Nepovedlo se pøidat nahrávání.\n\nUjistìte se, že název nahrávání neobsahuje následující znaky:\n/ \\ : * ? \" < > |",
                     Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -236,12 +257,12 @@ namespace Nahravadlo
         {
             ReformatFilename();
 
-            cmdSave.Enabled = SCHEDULES.exist(txtName.Text);
+            cmdSave.Enabled = SCHEDULES.Exist(txtName.Text);
 
             cmdDelete.Enabled = cmdSave.Enabled;
 
             if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                SCHEDULES.exist(txtName.Text))
+                SCHEDULES.Exist(txtName.Text))
                 cmdAdd.Enabled = false;
             else
                 cmdAdd.Enabled = true;
@@ -307,7 +328,7 @@ namespace Nahravadlo
             var itemName = (string) lst.SelectedItem;
             try
             {
-                using (Job job = SCHEDULES.get(itemName))
+                using (Job job = SCHEDULES.Get(itemName))
                 {
                     job.Start = dteBegin.Value;
                     job.Length = (int) numLength.Value;
@@ -315,7 +336,7 @@ namespace Nahravadlo
                     job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
                     job.Filename = txtFilename.Text;
 
-                    job.SetUsernameAndPassword(username, password);
+                    job.Save(username, password);
                 }
             }
             catch
@@ -332,7 +353,7 @@ namespace Nahravadlo
 
             try
             {
-                using (Job job = SCHEDULES.get(itemName))
+                using (Job job = SCHEDULES.Get(itemName))
                 {
                     if (job.Status == JobStatus.Running)
                         job.Terminate();
@@ -342,7 +363,7 @@ namespace Nahravadlo
 
             try
             {
-                SCHEDULES.remove(itemName);
+                SCHEDULES.Remove(itemName);
             }
             catch {}
 
@@ -377,7 +398,7 @@ namespace Nahravadlo
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            string[] names = SCHEDULES.getAllNames().ToArray();
+            string[] names = SCHEDULES.GetAllNames().ToArray();
 
             foreach (string name in names)
             {
@@ -411,7 +432,7 @@ namespace Nahravadlo
                     {
                         if (Equals(lst.SelectedItem, item))
                         {
-                            using (Job job = SCHEDULES.get(item))
+                            using (Job job = SCHEDULES.Get(item))
                             {
                                 txtStatus.Text = job.StatusText;
                                 btnStopRecording.Enabled = (job.Status == JobStatus.Running);
@@ -419,7 +440,7 @@ namespace Nahravadlo
                         }
                     }
 
-                    if (Equals(lst.SelectedItem, item) && !SCHEDULES.exist(item))
+                    if (Equals(lst.SelectedItem, item) && !SCHEDULES.Exist(item))
                         lst.Items.Remove(item);
                 }
             }
@@ -481,7 +502,7 @@ namespace Nahravadlo
         {
             try
             {
-                using (Job job = SCHEDULES.get((string) lst.SelectedItem))
+                using (Job job = SCHEDULES.Get((string) lst.SelectedItem))
                 {
                     job.Terminate();
                 }

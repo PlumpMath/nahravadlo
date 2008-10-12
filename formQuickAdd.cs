@@ -96,7 +96,7 @@ namespace Nahravadlo
             ReformatFilename();
 
             if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                formMain.SCHEDULES.exist(txtName.Text))
+                formMain.SCHEDULES.Exist(txtName.Text))
                 cmdAdd.Enabled = false;
             else
                 cmdAdd.Enabled = true;
@@ -113,7 +113,7 @@ namespace Nahravadlo
         private void txtFilename_TextChanged(object sender, EventArgs e)
         {
             if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                formMain.SCHEDULES.exist(txtName.Text))
+                formMain.SCHEDULES.Exist(txtName.Text))
                 cmdAdd.Enabled = false;
             else
                 cmdAdd.Enabled = true;
@@ -123,7 +123,7 @@ namespace Nahravadlo
 
         private void cmdAdd_Click(object sender, EventArgs e)
         {
-            using (Job job = formMain.SCHEDULES.create(txtName.Text))
+            using (Job job = formMain.SCHEDULES.Create(txtName.Text))
             {
                 job.Start = dteBegin.Value;
                 job.End = dteEnd.Value;
@@ -134,7 +134,7 @@ namespace Nahravadlo
                 string username = settings.getString("nahravadlo/config/login/username", "");
                 string password = settings.getString("nahravadlo/config/login/password", "");
 
-                job.SetUsernameAndPassword(username, password);
+                job.Save(username, password);
             }
             DialogResult = DialogResult.Yes;
             Close();
@@ -142,7 +142,7 @@ namespace Nahravadlo
 
         private void cmdAddAndClose_Click(object sender, EventArgs e)
         {
-            using (Job job = formMain.SCHEDULES.create(txtName.Text))
+            using (Job job = formMain.SCHEDULES.Create(txtName.Text))
             {
                 job.Start = dteBegin.Value;
                 job.End = dteEnd.Value;
@@ -153,7 +153,7 @@ namespace Nahravadlo
                 string username = settings.getString("nahravadlo/config/login/username", "");
                 string password = settings.getString("nahravadlo/config/login/password", "");
 
-                job.SetUsernameAndPassword(username, password);
+                job.Save(username, password);
             }
             DialogResult = DialogResult.OK;
             Close();
@@ -212,6 +212,19 @@ namespace Nahravadlo
             tmp = Utils.CorrectFilename(tmp);
 
             txtFilename.Text = tmp;
+        }
+
+        private void cmbProgram_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ReformatFilename();
+
+            if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
+                formMain.SCHEDULES.Exist(txtName.Text))
+                cmdAdd.Enabled = false;
+            else
+                cmdAdd.Enabled = true;
+
+            cmdAddAndClose.Enabled = cmdAdd.Enabled;
         }
     }
 }

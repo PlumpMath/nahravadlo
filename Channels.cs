@@ -82,8 +82,7 @@ namespace Nahravadlo
                 n.ParentNode.RemoveChild(n);
             }
 
-            XmlNode node = option.getNode("nahravadlo");
-            node = node.AppendChild(option.getXMLDocument().CreateElement("channels"));
+            XmlNode node = option.createSelectNodes("nahravadlo/channels"); ;
 
             for (int i = 0; i < channels.Length; i++)
             {
