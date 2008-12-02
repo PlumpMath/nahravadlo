@@ -48,14 +48,14 @@ namespace Nahravadlo
             TaskDefinition definition = taskService.NewTask();
             
             //Task Scheduler 2 musi obsahovat alespon jednu akci
-            definition.Actions.Add(new ExecAction("dummy", "", ""));
+            //definition.Actions.Add(new ExecAction("dummy", "", ""));
 
             //U Task Scheduler 2.0 se jiz nepouziva prefix, je to rozliseno vlastni slozkou
             if (Version == JobVersion.V1) name = NEW_TASK_PREFIX + name;
             
-            Task t = taskFolder.RegisterTaskDefinition(name, definition);
-            if (t == null) throw new JobNotCreatedException();
-            return new Job(t, taskFolder, Version, vlcFilename, workingDirectory);
+            //Task t = taskFolder.RegisterTaskDefinition(name, definition);
+            //if (t == null) throw new JobNotCreatedException();
+            return new Job(definition, name, taskFolder, Version, vlcFilename, workingDirectory);
         }
 
         public Job Get(string name)
@@ -78,7 +78,7 @@ namespace Nahravadlo
 
         public bool Exist(string name)
         {
-            return (TaskExist(taskFolder, name) && Version == JobVersion.V2) ||
+            return (Version == JobVersion.V2 && TaskExist(taskFolder, name)) ||
                    TaskExist(taskFolder, NEW_TASK_PREFIX + name) || TaskExist(taskFolder, OLD_TASK_PREFIX + name);
         }
 

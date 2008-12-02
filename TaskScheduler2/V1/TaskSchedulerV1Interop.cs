@@ -287,6 +287,13 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 				}
 			}
 		}
+
+		public override string ToString()
+		{
+			return string.Format("Trigger Type: {6};\n> Start: {0}; End: {1};\n> DurMin: {4}; DurItv: {5};\n>",
+				this.BeginDate, (this.EndYear == 0 ? "null" : this.EndDate.ToString()), this.Data, this.Flags,
+				this.MinutesDuration, this.MinutesInterval, this.Type);
+		}
 	}
 
 	[StructLayout(LayoutKind.Sequential, Pack=2)]
@@ -325,7 +332,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 	#endregion
 
 	// Interfaces
-	[Guid("148BD527-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("148BD527-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface ITaskScheduler
 	{
 		void SetTargetComputer([In, MarshalAs(UnmanagedType.LPWStr)] string Computer);
@@ -341,7 +348,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		void IsOfType([In, MarshalAs(UnmanagedType.LPWStr)] string TaskName, [In] ref System.Guid riid);
 	}
 
-	[Guid("148BD528-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("148BD528-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface IEnumWorkItems
 	{
 		[PreserveSig()]
@@ -390,7 +397,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		}
 #endif
 
-	[Guid("148BD524-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("148BD524-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface ITask
 	{
 		[return: MarshalAs(UnmanagedType.Interface)]
@@ -441,7 +448,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 		uint GetMaxRunTime();
 	}
 
-	[Guid("148BD52B-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+	[Guid("148BD52B-A2AB-11CE-B11F-00AA00530503"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), System.Security.SuppressUnmanagedCodeSecurity]
 	internal interface ITaskTrigger
 	{
 		void SetTrigger([In, Out, MarshalAs(UnmanagedType.Struct)] ref TaskTrigger Trigger);
@@ -451,12 +458,12 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 	}
 
 	// Classes
-	[ComImport, Guid("148BD52A-A2AB-11CE-B11F-00AA00530503")]
+	[ComImport, Guid("148BD52A-A2AB-11CE-B11F-00AA00530503"), System.Security.SuppressUnmanagedCodeSecurity]
 	internal class CTaskScheduler
 	{
 	}
 
-	[ComImport, Guid("148BD520-A2AB-11CE-B11F-00AA00530503")]
+	[ComImport, Guid("148BD520-A2AB-11CE-B11F-00AA00530503"), System.Security.SuppressUnmanagedCodeSecurity]
 	internal class CTask
 	{
 	}
@@ -465,6 +472,7 @@ namespace Microsoft.Win32.TaskScheduler.V1Interop
 	{
 		public CoTaskMemString() : base(IntPtr.Zero, true) { }
 		public CoTaskMemString(IntPtr handle) : this() { base.SetHandle(handle); }
+		public CoTaskMemString(string text) : this() { base.SetHandle(Marshal.StringToCoTaskMemUni(text)); }
 
 		public static implicit operator string(CoTaskMemString cmem)
 		{

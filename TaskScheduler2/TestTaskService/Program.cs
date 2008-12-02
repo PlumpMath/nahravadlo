@@ -7,7 +7,7 @@ namespace TestTaskService
 	{
 		static void Main(string[] args)
 		{
-			LongTest();
+			ShortTest();
 		}
 
 		static void ShortTest()
@@ -18,17 +18,28 @@ namespace TestTaskService
 			// Create a new task definition and assign properties
 			TaskDefinition td = ts.NewTask();
 			td.RegistrationInfo.Description = "Does something";
+			td.Principal.LogonType = TaskLogonType.InteractiveToken;
+
+			/*WeeklyTrigger weeklyTrigger = new WeeklyTrigger();
+			weeklyTrigger.DaysOfWeek = DaysOfTheWeek.Tuesday;
+			weeklyTrigger.WeeksInterval = 1;
+			weeklyTrigger.StartBoundary = DateTime.Today.AddHours(16);
+			td.Triggers.Add(weeklyTrigger);*/
+
+			td.Triggers.Add(new MonthlyTrigger() { DaysOfMonth = new int[] { 1, 8, 15, 22, 29 }, MonthsOfYear = MonthsOfTheYear.July, StartBoundary = DateTime.Today.AddHours(9) });
 
 			// Create a trigger that will fire the task at this time every other day
-			td.Triggers.Add(new DailyTrigger { DaysInterval = 2 });
+			//td.Triggers.Add(new DailyTrigger { DaysInterval = 2 });
 
 			// Create an action that will launch Notepad whenever the trigger fires
 			td.Actions.Add(new ExecAction("notepad.exe", "c:\\test.log", null));
 
 			// Register the task in the root folder
-			ts.RootFolder.RegisterTaskDefinition("Test", td);
+			Task t = ts.RootFolder.RegisterTaskDefinition("Test", td);
+			Console.WriteLine("LastTime & Result: {0} ({1})" , t.LastRunTime, t.LastTaskResult);
 
 			// Remove the task we just created
+			Console.ReadKey(false);
 			ts.RootFolder.DeleteTask("Test");
 		}
 
@@ -54,7 +65,7 @@ namespace TestTaskService
 			{
 				Console.WriteLine("+ {0}, {1} ({2})", t.Name, t.Definition.RegistrationInfo.Author, t.State);
 				foreach (Trigger trg in t.Definition.Triggers)
-					Console.WriteLine(" + {0}", trg.Id);
+					Console.WriteLine(" + {0}", trg);
 			}
 
 			TaskFolderCollection tfs = tf.SubFolders;
@@ -127,19 +138,26 @@ namespace TestTaskService
 
 				td.Triggers.Add(new RegistrationTrigger { Delay = TimeSpan.FromMinutes(5) });
 
+				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.ConsoleConnect, UserId = "AMERICAS\\dahall" });
+				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.ConsoleDisconnect });
 				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.RemoteConnect });
+				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.RemoteDisconnect });
+				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.SessionLock, UserId = "AMERICAS\\dahall" });
+				td.Triggers.Add(new SessionStateChangeTrigger { StateChange = TaskSessionStateChangeType.SessionUnlock });
 			}
 
 			td.Triggers.Add(new IdleTrigger());
 
 			LogonTrigger lTrigger = (LogonTrigger)td.Triggers.Add(new LogonTrigger());
 			if (newVer) lTrigger.Delay = TimeSpan.FromMinutes(15);
-			if (newVer) lTrigger.UserId = null;
+			if (newVer) lTrigger.UserId = "AMERICAS\\dahall";
+			if (newVer) lTrigger.Repetition.Interval = TimeSpan.FromSeconds(1000);
 
 			MonthlyTrigger mTrigger = (MonthlyTrigger)td.Triggers.Add(new MonthlyTrigger());
 			mTrigger.DaysOfMonth = new int[] { 3, 6, 10, 18 };
 			mTrigger.MonthsOfYear = MonthsOfTheYear.July | MonthsOfTheYear.November;
 			if (newVer) mTrigger.RunOnLastDayOfMonth = true;
+			mTrigger.EndBoundary = DateTime.Today + TimeSpan.FromDays(90);
 
 			MonthlyDOWTrigger mdTrigger = (MonthlyDOWTrigger)td.Triggers.Add(new MonthlyDOWTrigger());
 			mdTrigger.DaysOfWeek = DaysOfTheWeek.AllDays;
@@ -158,7 +176,7 @@ namespace TestTaskService
 
 			WeeklyTrigger wTrigger = (WeeklyTrigger)td.Triggers.Add(new WeeklyTrigger());
 			wTrigger.DaysOfWeek = DaysOfTheWeek.Monday;
-			wTrigger.WeeksInterval = 1;
+			wTrigger.WeeksInterval = 3;
 
 			td.Actions.Add(new ExecAction("notepad.exe", "c:\\test.log", null));
 			if (newVer)

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using Microsoft.Win32.TaskScheduler.V1Interop;
 
 namespace Microsoft.Win32.TaskScheduler
 {
@@ -174,40 +171,36 @@ namespace Microsoft.Win32.TaskScheduler
 			if (v2Folder != null)
 				return new Task(v2Folder.RegisterTaskDefinition(Path, definition.v2Def, (int)createType, UserId, password, LogonType, sddl));
 
-            TaskFlags flags = definition.v1Task.GetFlags();
-
-            IntPtr pwd;
-            switch (LogonType)
-            {
-                case TaskLogonType.Group:
-                case TaskLogonType.S4U:
-                case TaskLogonType.None:
-                    throw new NotV1SupportedException("This LogonType is not supported on Task Scheduler 1.0.");
-                case TaskLogonType.InteractiveToken:
-                    flags |= TaskFlags.RunOnlyIfLoggedOn;
-                    flags |= TaskFlags.Interactive;
-                    if (String.IsNullOrEmpty(UserId)) UserId = WindowsIdentity.GetCurrent().Name;
-                    definition.v1Task.SetAccountInformation(UserId, IntPtr.Zero);
-                    break;
-                case TaskLogonType.ServiceAccount:
-                    if (String.IsNullOrEmpty(UserId)) definition.v1Task.SetAccountInformation(String.Empty, IntPtr.Zero);
-                    else definition.v1Task.SetAccountInformation(UserId, IntPtr.Zero);
-                    break;
-                case TaskLogonType.InteractiveTokenOrPassword:
-                    pwd = Marshal.StringToCoTaskMemUni(password);
-                    definition.v1Task.SetAccountInformation(UserId, pwd);
-                    Marshal.FreeCoTaskMem(pwd);
-                    flags |= TaskFlags.Interactive;
-                    break;
-                case TaskLogonType.Password:
-                    pwd = Marshal.StringToCoTaskMemUni(password);
-                    definition.v1Task.SetAccountInformation(UserId, pwd);
-                    Marshal.FreeCoTaskMem(pwd);
-                    break;
-                default:
-                    break;
-            }
-            definition.v1Task.SetFlags(flags);
+			// Adds ability to set a password for a V1 task. Provided by Arcao.
+			V1Interop.TaskFlags flags = definition.v1Task.GetFlags();
+			switch (LogonType)
+			{
+				case TaskLogonType.Group:
+				case TaskLogonType.S4U:
+				case TaskLogonType.None:
+					throw new NotV1SupportedException("This LogonType is not supported on Task Scheduler 1.0.");
+				case TaskLogonType.InteractiveToken:
+					flags |= (V1Interop.TaskFlags.RunOnlyIfLoggedOn | V1Interop.TaskFlags.Interactive);
+					if (String.IsNullOrEmpty(UserId))
+						UserId = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+					definition.v1Task.SetAccountInformation(UserId, IntPtr.Zero);
+					break;
+				case TaskLogonType.ServiceAccount:
+					definition.v1Task.SetAccountInformation(String.IsNullOrEmpty(UserId) ? String.Empty : UserId, IntPtr.Zero);
+					break;
+				case TaskLogonType.InteractiveTokenOrPassword:
+					using (V1Interop.CoTaskMemString cpwd = new V1Interop.CoTaskMemString(password))
+						definition.v1Task.SetAccountInformation(UserId, cpwd.DangerousGetHandle());
+					flags |= V1Interop.TaskFlags.Interactive;
+					break;
+				case TaskLogonType.Password:
+					using (V1Interop.CoTaskMemString cpwd = new V1Interop.CoTaskMemString(password))
+						definition.v1Task.SetAccountInformation(UserId, cpwd.DangerousGetHandle());
+					break;
+				default:
+					break;
+			}
+			definition.v1Task.SetFlags(flags);
 
 			switch (createType)
 			{

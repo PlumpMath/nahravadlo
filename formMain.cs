@@ -37,7 +37,7 @@ namespace Nahravadlo
 
         	TestUACElevation(true);
 
-			if (UAC.IsVistaOrHigher() && !String.IsNullOrEmpty(username)
+			//if (UAC.IsVistaOrHigher() && !String.IsNullOrEmpty(username)
 
             SCHEDULES = new Schedules(vlc, defaultDirectory);
         }

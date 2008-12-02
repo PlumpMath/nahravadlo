@@ -58,7 +58,7 @@ namespace Nahravadlo
 			{
 				Process p = Process.Start(startInfo);
 			}
-			catch (System.ComponentModel.Win32Exception ex)
+			catch
 			{
 				return; //If cancelled, do nothing
 			}

@@ -48,6 +48,7 @@ namespace Nahravadlo
     public class Job : IDisposable
     {
         private Task task;
+        private String taskName;
         private readonly TaskDefinition definition;
         private readonly TaskFolder folder;
         private readonly JobVersion version;
@@ -59,7 +60,7 @@ namespace Nahravadlo
         /// Konstruktor objektu
         /// </summary>
         /// <param name="task">Naplanovana uloha</param>
-        /// <param name="folder">Misto uloyeni naplanovane ulohy</param>
+        /// <param name="folder">Misto ulozeni naplanovane ulohy</param>
         /// <param name="version">Verze naplanovane ulohy</param>
         /// <param name="vlcFilename">Nazev souboru i s cestou k VLC</param>
         /// <param name="workingDirectory">Pracovni adresar, ve kterem bude bezet nahravani.</param>
@@ -71,6 +72,7 @@ namespace Nahravadlo
             this.vlcFilename = vlcFilename;
             this.workingDirectory = workingDirectory;
 
+            taskName = task.Name;
             definition = task.Definition;
             
             TriggerCollection triggers = definition.Triggers;
@@ -101,17 +103,57 @@ namespace Nahravadlo
 
         }
 
+        /// <summary>
+        /// Konstruktor objektu
+        /// </summary>
+        /// <param name="definition">Definice ulohy</param>
+        /// <param name="taskName">Nazev ulohy</param>
+        /// <param name="folder">Misto ulozeni naplanovane ulohy</param>
+        /// <param name="version">Verze naplanovane ulohy</param>
+        /// <param name="vlcFilename">Nazev souboru i s cestou k VLC</param>
+        /// <param name="workingDirectory">Pracovni adresar, ve kterem bude bezet nahravani.</param>
+        internal Job(TaskDefinition definition, String taskName, TaskFolder folder, JobVersion version, string vlcFilename, string workingDirectory)
+        {
+            task = null;
+            this.folder = folder;
+            this.version = version;
+            this.vlcFilename = vlcFilename;
+            this.workingDirectory = workingDirectory;
+            this.taskName = taskName;
+
+            this.definition = definition;
+        }
+
         public void Save(String userName, String password)
         {
             //nastaveni hodnot
             definition.Triggers.Clear();
             definition.Triggers.Add(new TimeTrigger {StartBoundary = Start, Enabled = true, EndBoundary = End});
 
-            definition.Actions.Clear();
             String args = UseMPEGTS ? string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", Uri, Filename) : string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", Uri, Filename);
-            definition.Actions.Add(new ExecAction(vlcFilename, args, workingDirectory));
-
+            
+            if (definition.Actions.Count > 0 && version == JobVersion.V2)
+            {
+                if (!(definition.Actions[0] is ExecAction))
+                {
+                    definition.Actions.Clear();
+                    definition.Actions.Add(new ExecAction(vlcFilename, args, workingDirectory));
+                } else
+                {
+                    ExecAction action = (ExecAction) definition.Actions[0];
+                    action.Path = vlcFilename;
+                    action.Arguments = args;
+                    action.WorkingDirectory = workingDirectory;
+                }
+            }
+            else
+            {
+                definition.Actions.Add(new ExecAction(vlcFilename, args, workingDirectory));
+            }
+            
             definition.Settings.ExecutionTimeLimit = TimeSpan.FromMinutes(Length);
+            definition.Settings.DeleteExpiredTaskAfter = TimeSpan.FromMinutes(Length);
+
             definition.Settings.Priority = ProcessPriorityClass.High;
 
             //Pokud je v ceste adresar a neexistuje, vytvorime ho
@@ -122,7 +164,7 @@ namespace Nahravadlo
                                               ? TaskLogonType.InteractiveToken
                                               : TaskLogonType.Password;
             if (version == JobVersion.V2) definition.Principal.UserId = userName;
-            task = folder.RegisterTaskDefinition(Name, definition, TaskCreation.CreateOrUpdate, userName, password, logonType, null);
+            task = folder.RegisterTaskDefinition(taskName, definition, TaskCreation.CreateOrUpdate, userName, password, logonType, null);
         }
 
         /// <summary>
@@ -132,24 +174,25 @@ namespace Nahravadlo
         {
             get
             {
-                string name = task.Name;
+                string name = taskName;
                 if (version == JobVersion.V2) return name;
                 if (name.StartsWith(Schedules.NEW_TASK_PREFIX)) return name.Substring(Schedules.NEW_TASK_PREFIX.Length);
                 if (name.StartsWith(Schedules.OLD_TASK_PREFIX)) return name.Substring(Schedules.OLD_TASK_PREFIX.Length);
                 return String.Empty;
             }
-            /*set
+            set
             {
                 if (value == Name) return;
 
-                //preulozime nazev
-                string oldName = task.Name;
-
-                task.Save("Nahrávadlo - " + value);
-
-                //smazeme starou naplanovanou ulohu
-                Schedules.Remove(oldName);
-            }*/
+                if (version == JobVersion.V2)
+                {
+                    taskName = value;
+                } 
+                else
+                {
+                    taskName = Schedules.NEW_TASK_PREFIX + value;
+                }
+            }
         }
 
         /// <summary>
