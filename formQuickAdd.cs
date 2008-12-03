@@ -4,227 +4,227 @@ using System.Windows.Forms;
 
 namespace Nahravadlo
 {
-    public partial class formQuickAdd : Form
-    {
-        private readonly bool filenameLowerCase;
-        private readonly string filenameMask = "%N.mpg";
-        private readonly int filenameSpaceReplacement;
-        private readonly bool filenameWithoutDiacritics;
-        private readonly Settings settings;
+	public partial class formQuickAdd : Form
+	{
+		private readonly bool filenameLowerCase;
+		private readonly string filenameMask = "%N.mpg";
+		private readonly int filenameSpaceReplacement;
+		private readonly bool filenameWithoutDiacritics;
+		private readonly Settings settings;
 
-        public formQuickAdd()
-        {
-            settings = Settings.getInstance();
+		public formQuickAdd()
+		{
+			settings = Settings.getInstance();
 
-            filenameMask = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
-            filenameWithoutDiacritics = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
-            filenameLowerCase = settings.getBool("nahravadlo/config/filename/lower_case", false);
-            filenameSpaceReplacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
-            if (filenameSpaceReplacement < 0 || filenameSpaceReplacement > 3) filenameSpaceReplacement = 0;
-        }
+			filenameMask = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
+			filenameWithoutDiacritics = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
+			filenameLowerCase = settings.getBool("nahravadlo/config/filename/lower_case", false);
+			filenameSpaceReplacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
+			if (filenameSpaceReplacement < 0 || filenameSpaceReplacement > 3)
+				filenameSpaceReplacement = 0;
+		}
 
-        public formQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
-        {
-            InitializeComponent();
-            Application.EnableVisualStyles();
+		public formQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
+		{
+			InitializeComponent();
+			Application.EnableVisualStyles();
 
-            var channels = new Channels(settings);
+			var channels = new Channels(settings);
 
-            //Naplneni kanalu
-            foreach (Channel channel in channels.getChannels())
-                cmbProgram.Items.Add(channel);
+			//Naplneni kanalu
+			foreach (var channel in channels.getChannels())
+				cmbProgram.Items.Add(channel);
 
-            //vybereme kanal
-            if (channels.getChannelFromId(gid) != null)
-                cmbProgram.Text = channels.getChannelFromId(gid).ToString();
+			//vybereme kanal
+			if (channels.getChannelFromId(gid) != null)
+				cmbProgram.Text = channels.getChannelFromId(gid).ToString();
 
-            //vlozime nazev nahravani
-            txtName.Text = Utils.CorrectFilename(name);
+			//vlozime nazev nahravani
+			txtName.Text = Utils.CorrectFilename(name);
 
-            //vlozime nazev souboru
-            txtFilename.Text = txtName.Text + ".mpg";
+			//vlozime nazev souboru
+			txtFilename.Text = txtName.Text + ".mpg";
 
-            //nastavime pocatek nahravani
-            dteBegin.Value = start;
+			//nastavime pocatek nahravani
+			dteBegin.Value = start;
 
-            //posuneme konec nahravani, pokud je to nastaveny
-            stop += TimeSpan.FromMinutes(settings.getInt("nahravadlo/config/add_schedule_minutes", 0));
-            //nastavime konec nahravani
-            dteEnd.Value = stop;
-        }
+			//posuneme konec nahravani, pokud je to nastaveny
+			stop += TimeSpan.FromMinutes(settings.getInt("nahravadlo/config/add_schedule_minutes", 0));
+			//nastavime konec nahravani
+			dteEnd.Value = stop;
+		}
 
-        private void dteEnd_Validating(object sender, CancelEventArgs e)
-        {
-            if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
-            {
-                //e.Cancel = true;
-                Utils.ShowBubble(dteEnd, ToolTipIcon.Error, "Chyba v datumu!", "Datum konce poøadu je nastaven pøed datum zaèátku!");
+		private void dteEnd_Validating(object sender, CancelEventArgs e)
+		{
+			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes > 0)
+				return;
 
-                DateTime val = dteBegin.Value;
-                val = val.AddMinutes(1);
-                dteEnd.Value = val;
-            }
-        }
+			//e.Cancel = true;
+			Utils.ShowBubble(dteEnd, ToolTipIcon.Error, "Chyba v datumu!", "Datum konce poøadu je nastaven pøed datum zaèátku!");
 
-        private void dteEnd_ValueChanged(object sender, EventArgs e)
-        {
-            if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
-                return;
+			var val = dteBegin.Value;
+			val = val.AddMinutes(1);
+			dteEnd.Value = val;
+		}
 
-            numLength.Value = (int) Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes);
-            ReformatFilename();
-        }
+		private void dteEnd_ValueChanged(object sender, EventArgs e)
+		{
+			if (dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes <= 0)
+				return;
 
-        private void numLength_ValueChanged(object sender, EventArgs e)
-        {
-            DateTime val = dteBegin.Value;
-            val = val.AddMinutes((double) numLength.Value);
-            dteEnd.Value = val;
-            ReformatFilename();
-        }
+			numLength.Value = (int) Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes);
+			ReformatFilename();
+		}
 
-        private void dteBegin_ValueChanged(object sender, EventArgs e)
-        {
-            DateTime val = dteBegin.Value;
-            val = val.AddMinutes((double) numLength.Value);
-            dteEnd.Value = val;
-            ReformatFilename();
-        }
+		private void numLength_ValueChanged(object sender, EventArgs e)
+		{
+			var val = dteBegin.Value;
+			val = val.AddMinutes((double) numLength.Value);
+			dteEnd.Value = val;
+			ReformatFilename();
+		}
 
-        private void txtName_TextChanged(object sender, EventArgs e)
-        {
-            ReformatFilename();
+		private void dteBegin_ValueChanged(object sender, EventArgs e)
+		{
+			var val = dteBegin.Value;
+			val = val.AddMinutes((double) numLength.Value);
+			dteEnd.Value = val;
+			ReformatFilename();
+		}
 
-            if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                formMain.SCHEDULES.Exist(txtName.Text))
-                cmdAdd.Enabled = false;
-            else
-                cmdAdd.Enabled = true;
+		private void txtName_TextChanged(object sender, EventArgs e)
+		{
+			ReformatFilename();
 
-            cmdAddAndClose.Enabled = cmdAdd.Enabled;
-        }
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+				cmdAdd.Enabled = false;
+			else
+				cmdAdd.Enabled = true;
 
-        private void cmdClose_Click(object sender, EventArgs e)
-        {
-            DialogResult = DialogResult.Abort;
-            Close();
-        }
+			cmdAddAndClose.Enabled = cmdAdd.Enabled;
+		}
 
-        private void txtFilename_TextChanged(object sender, EventArgs e)
-        {
-            if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                formMain.SCHEDULES.Exist(txtName.Text))
-                cmdAdd.Enabled = false;
-            else
-                cmdAdd.Enabled = true;
+		private void cmdClose_Click(object sender, EventArgs e)
+		{
+			DialogResult = DialogResult.Abort;
+			Close();
+		}
 
-            cmdAddAndClose.Enabled = cmdAdd.Enabled;
-        }
+		private void txtFilename_TextChanged(object sender, EventArgs e)
+		{
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+				cmdAdd.Enabled = false;
+			else
+				cmdAdd.Enabled = true;
 
-        private void cmdAdd_Click(object sender, EventArgs e)
-        {
-            using (Job job = formMain.SCHEDULES.Create(txtName.Text))
-            {
-                job.Start = dteBegin.Value;
-                job.End = dteEnd.Value;
-                job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
-                job.Filename = txtFilename.Text;
-                job.UseMPEGTS = formMain.useMpegTS;
+			cmdAddAndClose.Enabled = cmdAdd.Enabled;
+		}
 
-                string username = settings.getString("nahravadlo/config/login/username", "");
-                string password = settings.getString("nahravadlo/config/login/password", "");
+		private void cmdAdd_Click(object sender, EventArgs e)
+		{
+			using (var job = formMain.SCHEDULES.Create(txtName.Text))
+			{
+				job.Start = dteBegin.Value;
+				job.End = dteEnd.Value;
+				job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+				job.Filename = txtFilename.Text;
+				job.UseMPEGTS = formMain.useMpegTS;
 
-                job.Save(username, password);
-            }
-            DialogResult = DialogResult.Yes;
-            Close();
-        }
+				var username = settings.getString("nahravadlo/config/login/username", "");
+				var password = settings.getString("nahravadlo/config/login/password", "");
 
-        private void cmdAddAndClose_Click(object sender, EventArgs e)
-        {
-            using (Job job = formMain.SCHEDULES.Create(txtName.Text))
-            {
-                job.Start = dteBegin.Value;
-                job.End = dteEnd.Value;
-                job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
-                job.Filename = txtFilename.Text;
-                job.UseMPEGTS = formMain.useMpegTS;
+				job.Save(username, password);
+			}
+			DialogResult = DialogResult.Yes;
+			Close();
+		}
 
-                string username = settings.getString("nahravadlo/config/login/username", "");
-                string password = settings.getString("nahravadlo/config/login/password", "");
+		private void cmdAddAndClose_Click(object sender, EventArgs e)
+		{
+			using (var job = formMain.SCHEDULES.Create(txtName.Text))
+			{
+				job.Start = dteBegin.Value;
+				job.End = dteEnd.Value;
+				job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+				job.Filename = txtFilename.Text;
+				job.UseMPEGTS = formMain.useMpegTS;
 
-                job.Save(username, password);
-            }
-            DialogResult = DialogResult.OK;
-            Close();
-        }
+				var username = settings.getString("nahravadlo/config/login/username", "");
+				var password = settings.getString("nahravadlo/config/login/password", "");
 
-        private void cmdBrowse_Click(object sender, EventArgs e)
-        {
-            dialog.InitialDirectory = formMain.defaultDirectory;
-            dialog.FileName = txtFilename.Text;
-            dialog.OverwritePrompt = true;
-            dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
-            dialog.ValidateNames = true;
-            if (dialog.ShowDialog() == DialogResult.OK)
-                txtFilename.Text = dialog.FileName;
-        }
+				job.Save(username, password);
+			}
+			DialogResult = DialogResult.OK;
+			Close();
+		}
 
-        private void ReformatFilename()
-        {
-            string tmp = filenameMask;
+		private void cmdBrowse_Click(object sender, EventArgs e)
+		{
+			dialog.InitialDirectory = formMain.defaultDirectory;
+			dialog.FileName = txtFilename.Text;
+			dialog.OverwritePrompt = true;
+			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
+			dialog.ValidateNames = true;
+			if (dialog.ShowDialog() == DialogResult.OK)
+				txtFilename.Text = dialog.FileName;
+		}
 
-            tmp = tmp.Replace("%%", Char.ConvertFromUtf32(0));
+		private void ReformatFilename()
+		{
+			var tmp = filenameMask;
 
-            tmp = tmp.Replace("%N", txtName.Text.Trim());
-            tmp = tmp.Replace("%S", cmbProgram.Text.Trim());
+			tmp = tmp.Replace("%%", Char.ConvertFromUtf32(0));
 
-            tmp = tmp.Replace("%H", dteBegin.Value.Hour.ToString("00"));
-            tmp = tmp.Replace("%i", dteBegin.Value.Minute.ToString("00"));
+			tmp = tmp.Replace("%N", txtName.Text.Trim());
+			tmp = tmp.Replace("%S", cmbProgram.Text.Trim());
 
-            tmp = tmp.Replace("%D", dteBegin.Value.Day.ToString("00"));
-            tmp = tmp.Replace("%M", dteBegin.Value.Month.ToString("00"));
-            tmp = tmp.Replace("%Y", dteBegin.Value.Year.ToString("0000"));
-            tmp = tmp.Replace("%y", (dteBegin.Value.Year%100).ToString("00"));
+			tmp = tmp.Replace("%H", dteBegin.Value.Hour.ToString("00"));
+			tmp = tmp.Replace("%i", dteBegin.Value.Minute.ToString("00"));
 
-            tmp = tmp.Replace("%L", Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes).ToString());
+			tmp = tmp.Replace("%D", dteBegin.Value.Day.ToString("00"));
+			tmp = tmp.Replace("%M", dteBegin.Value.Month.ToString("00"));
+			tmp = tmp.Replace("%Y", dteBegin.Value.Year.ToString("0000"));
+			tmp = tmp.Replace("%y", (dteBegin.Value.Year%100).ToString("00"));
 
-            if (filenameWithoutDiacritics) tmp = Utils.RemoveDiacritics(tmp);
-            if (filenameLowerCase) tmp = tmp.ToLower();
+			tmp = tmp.Replace("%L", Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes).ToString());
 
-            switch (filenameSpaceReplacement)
-            {
-                case 1:
-                    tmp = tmp.Replace(' ', '_');
-                    break;
-                case 2:
-                    tmp = tmp.Replace(' ', '-');
-                    break;
-                case 3:
-                    tmp = tmp.Replace(" ", "");
-                    break;
-                default:
-                    break;
-            }
+			if (filenameWithoutDiacritics)
+				tmp = Utils.RemoveDiacritics(tmp);
+			if (filenameLowerCase)
+				tmp = tmp.ToLower();
 
-            tmp = tmp.Replace(Char.ConvertFromUtf32(0), "%");
+			switch (filenameSpaceReplacement)
+			{
+				case 1:
+					tmp = tmp.Replace(' ', '_');
+					break;
+				case 2:
+					tmp = tmp.Replace(' ', '-');
+					break;
+				case 3:
+					tmp = tmp.Replace(" ", "");
+					break;
+				default:
+					break;
+			}
 
-            tmp = Utils.CorrectFilename(tmp);
+			tmp = tmp.Replace(Char.ConvertFromUtf32(0), "%");
 
-            txtFilename.Text = tmp;
-        }
+			tmp = Utils.CorrectFilename(tmp);
 
-        private void cmbProgram_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            ReformatFilename();
+			txtFilename.Text = tmp;
+		}
 
-            if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 ||
-                formMain.SCHEDULES.Exist(txtName.Text))
-                cmdAdd.Enabled = false;
-            else
-                cmdAdd.Enabled = true;
+		private void cmbProgram_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			ReformatFilename();
 
-            cmdAddAndClose.Enabled = cmdAdd.Enabled;
-        }
-    }
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+				cmdAdd.Enabled = false;
+			else
+				cmdAdd.Enabled = true;
+
+			cmdAddAndClose.Enabled = cmdAdd.Enabled;
+		}
+	}
 }

@@ -6,316 +6,302 @@ using Microsoft.Win32;
 
 namespace Nahravadlo
 {
-    public partial class formSettings : Form
-    {
-        public bool isCanceled;
-        private readonly Settings settings;
+	public partial class formSettings : Form
+	{
+		private readonly Settings settings;
+		public bool isCanceled;
 
-        public formSettings()
-        {
-            InitializeComponent();
+		public formSettings()
+		{
+			InitializeComponent();
 
-            settings = Settings.getInstance();
+			settings = Settings.getInstance();
 
-            LoadData();
-            isCanceled = false;
-        }
+			LoadData();
+			isCanceled = false;
+		}
 
-        private void btnHelp_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(
-                "Pokud má být nahrávání spuštìno na pozadí, tak aby nebylo vidìt okno VLC, pak je nutné zadat jméno a heslo existujícího uživatele ve Windows XP (Nejlépe jiného uživatele, než pod kterým jste aktuálnì pøihlášen. Heslo nesmí být prázdné!). Pokud nevyplníte uživatele a heslo, VLC se spustí pod právì pøihlášeným uživatelem a tento uživatel uvidí okno VLC vèetnì možnosti jeho ovládání (nahrávání se neprovede, pokud uživatel nebude pøihlášen!).\n\nPoznámka: Uživatelské jméno je možné zadávat vèetnì domény. Uživatel, pod kterým bude spuštìno VLC musí mít možnost tuto aplikaci spustit a musí mít možnost pøistupovat i k prostoru na disku, kam se budou ukládat soubory.\n\nJe výhodné pomocí ovládacích panelù založit nového uživatele, nejlépe s pravomocmi správce poèítaèe, nastavit mu heslo a následnì tohoto uživatele vyplnit do této aplikace.",
-                Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+		private void btnHelp_Click(object sender, EventArgs e)
+		{
+			MessageBox.Show("Pokud má být nahrávání spuštìno na pozadí, tak aby nebylo vidìt okno VLC, pak je nutné zadat jméno a heslo existujícího uživatele ve Windows XP (Nejlépe jiného uživatele, než pod kterým jste aktuálnì pøihlášen. Heslo nesmí být prázdné!). Pokud nevyplníte uživatele a heslo, VLC se spustí pod právì pøihlášeným uživatelem a tento uživatel uvidí okno VLC vèetnì možnosti jeho ovládání (nahrávání se neprovede, pokud uživatel nebude pøihlášen!).\n\nPoznámka: Uživatelské jméno je možné zadávat vèetnì domény. Uživatel, pod kterým bude spuštìno VLC musí mít možnost tuto aplikaci spustit a musí mít možnost pøistupovat i k prostoru na disku, kam se budou ukládat soubory.\n\nJe výhodné pomocí ovládacích panelù založit nového uživatele, nejlépe s pravomocmi správce poèítaèe, nastavit mu heslo a následnì tohoto uživatele vyplnit do této aplikace.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
 
-        private void btnSelectVLC_Click(object sender, EventArgs e)
-        {
-            openFile.FileName = txtVLCPath.Text;
-            openFile.ShowDialog();
-            txtVLCPath.Text = openFile.FileName;
-        }
+		private void btnSelectVLC_Click(object sender, EventArgs e)
+		{
+			openFile.FileName = txtVLCPath.Text;
+			openFile.ShowDialog();
+			txtVLCPath.Text = openFile.FileName;
+		}
 
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            isCanceled = true;
-            Close();
-        }
+		private void btnCancel_Click(object sender, EventArgs e)
+		{
+			isCanceled = true;
+			Close();
+		}
 
-        private void btnSaveAndClose_Click(object sender, EventArgs e)
-        {
-            if (!File.Exists(txtVLCPath.Text) || txtVLCPath.Text.Trim().Length == 0 ||
-                !Directory.Exists(txtDefaultDirectory.Text) || txtDefaultDirectory.Text.Trim().Length == 0)
-            {
-                MessageBox.Show(
-                    "Prosím vyplòte správnì následující položky:\n\nCesta k VLC - musí obsahovat cestu k VLC vèetnì spustitelného souboru.\n\nVýchozí adresáø - musí obsahovat cestu k adresáøi, kam se budou ukládat nahrané poøady, pokud u nich nebude uvedena absolutní cesta.",
-                    Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                DialogResult = DialogResult.None;
-                return;
-            }
-            SaveData();
-            Close();
-        }
+		private void btnSaveAndClose_Click(object sender, EventArgs e)
+		{
+			if (!File.Exists(txtVLCPath.Text) || txtVLCPath.Text.Trim().Length == 0 || !Directory.Exists(txtDefaultDirectory.Text) || txtDefaultDirectory.Text.Trim().Length == 0)
+			{
+				MessageBox.Show("Prosím vyplòte správnì následující položky:\n\nCesta k VLC - musí obsahovat cestu k VLC vèetnì spustitelného souboru.\n\nVýchozí adresáø - musí obsahovat cestu k adresáøi, kam se budou ukládat nahrané poøady, pokud u nich nebude uvedena absolutní cesta.", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				DialogResult = DialogResult.None;
+				return;
+			}
+			SaveData();
+			Close();
+		}
 
-        private void LoadData()
-        {
-            try
-            {
-                txtVLCPath.Text = settings.getString("nahravadlo/config/vlc", "");
-                txtDefaultDirectory.Text = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
-                chkUseMPEGTS.Checked = settings.getBool("nahravadlo/config/use_mpegts", false);
+		private void LoadData()
+		{
+			try
+			{
+				txtVLCPath.Text = settings.getString("nahravadlo/config/vlc", "");
+				txtDefaultDirectory.Text = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
+				chkUseMPEGTS.Checked = settings.getBool("nahravadlo/config/use_mpegts", false);
 
-                txtUsername.Text = settings.getString("nahravadlo/config/login/username", "");
-                txtPassword.Text = settings.getString("nahravadlo/config/login/password", "");
+				txtUsername.Text = settings.getString("nahravadlo/config/login/username", "");
+				txtPassword.Text = settings.getString("nahravadlo/config/login/password", "");
 
-                numAddScheduleMinutes.Value = settings.getInt("nahravadlo/config/add_schedule_minutes", 0);
+				numAddScheduleMinutes.Value = settings.getInt("nahravadlo/config/add_schedule_minutes", 0);
 
-                txtFilenameMask.Text = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
-                chkFilenameWithoutDiacritics.Checked = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
-                chkFilenameLowerCase.Checked = settings.getBool("nahravadlo/config/filename/lower_case", false);
-                int space_replacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
+				txtFilenameMask.Text = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
+				chkFilenameWithoutDiacritics.Checked = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
+				chkFilenameLowerCase.Checked = settings.getBool("nahravadlo/config/filename/lower_case", false);
+				var space_replacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
 
-                if (space_replacement < 0 || space_replacement > 3) space_replacement = 0;
-                cmbSpacesReplacement.SelectedIndex = space_replacement;
+				if (space_replacement < 0 || space_replacement > 3)
+					space_replacement = 0;
+				cmbSpacesReplacement.SelectedIndex = space_replacement;
 
-                Channel[] channels = new Channels(settings).getChannels();
+				var channels = new Channels(settings).getChannels();
 
-                if (channels.Length == 0) channels = new Channels(settings).getDefaultChannels();
+				if (channels.Length == 0)
+					channels = new Channels(settings).getDefaultChannels();
 
-                lstChannel.Items.Clear();
-                foreach (Channel channel in channels)
-                    lstChannel.Items.Add(channel);
+				lstChannel.Items.Clear();
+				foreach (var channel in channels)
+					lstChannel.Items.Add(channel);
 
-                CheckScheduleProtocolRegistration();
-            }
-            catch {}
-        }
+				CheckScheduleProtocolRegistration();
+			}
+			catch {}
+		}
 
-        private void SaveData()
-        {
-            try
-            {
-                settings.setString("nahravadlo/config/vlc", txtVLCPath.Text);
-                settings.setString("nahravadlo/config/defaultdirectory", txtDefaultDirectory.Text);
-                settings.setBool("nahravadlo/config/use_mpegts", chkUseMPEGTS.Checked);
+		private void SaveData()
+		{
+			try
+			{
+				settings.setString("nahravadlo/config/vlc", txtVLCPath.Text);
+				settings.setString("nahravadlo/config/defaultdirectory", txtDefaultDirectory.Text);
+				settings.setBool("nahravadlo/config/use_mpegts", chkUseMPEGTS.Checked);
 
-                settings.setString("nahravadlo/config/login/username", txtUsername.Text);
-                settings.setString("nahravadlo/config/login/password", txtPassword.Text);
+				settings.setString("nahravadlo/config/login/username", txtUsername.Text);
+				settings.setString("nahravadlo/config/login/password", txtPassword.Text);
 
-                settings.setInt("nahravadlo/config/add_schedule_minutes", (int) numAddScheduleMinutes.Value);
+				settings.setInt("nahravadlo/config/add_schedule_minutes", (int) numAddScheduleMinutes.Value);
 
-                settings.setString("nahravadlo/config/filename/mask", txtFilenameMask.Text);
-                settings.setBool("nahravadlo/config/filename/without_diacritics", chkFilenameWithoutDiacritics.Checked);
-                settings.setBool("nahravadlo/config/filename/lower_case", chkFilenameLowerCase.Checked);
-                settings.setInt("nahravadlo/config/filename/space_replacement", cmbSpacesReplacement.SelectedIndex);
+				settings.setString("nahravadlo/config/filename/mask", txtFilenameMask.Text);
+				settings.setBool("nahravadlo/config/filename/without_diacritics", chkFilenameWithoutDiacritics.Checked);
+				settings.setBool("nahravadlo/config/filename/lower_case", chkFilenameLowerCase.Checked);
+				settings.setInt("nahravadlo/config/filename/space_replacement", cmbSpacesReplacement.SelectedIndex);
 
-                var channel = new Channel[lstChannel.Items.Count];
-                lstChannel.Items.CopyTo(channel, 0);
+				var channel = new Channel[lstChannel.Items.Count];
+				lstChannel.Items.CopyTo(channel, 0);
 
-                new Channels(settings).setChannels(channel);
+				new Channels(settings).setChannels(channel);
 
-                settings.Save();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Nepovedlo se uložit nastavení programu.\n\nSystém hlásí: " + e.Message, Text, MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-            }
-        }
+				settings.Save();
+			}
+			catch (Exception e)
+			{
+				MessageBox.Show("Nepovedlo se uložit nastavení programu.\n\nSystém hlásí: " + e.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
 
-        private void btnBrowse_Click(object sender, EventArgs e)
-        {
-            folderBrowser.SelectedPath = txtDefaultDirectory.Text;
-            folderBrowser.ShowDialog();
-            txtDefaultDirectory.Text = folderBrowser.SelectedPath;
-        }
+		private void btnBrowse_Click(object sender, EventArgs e)
+		{
+			folderBrowser.SelectedPath = txtDefaultDirectory.Text;
+			folderBrowser.ShowDialog();
+			txtDefaultDirectory.Text = folderBrowser.SelectedPath;
+		}
 
-        private void btnContainerHelp_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(
-                "MPEG TS (Transport Stream) se používá pro pøenášení MPEG záznamu v prostøedí, kde mohou vznikat chyby, napø: DVB-T, streamovaní po síti, atd. Narozdíl od toho se MPEG PS (Programm Stream) využívá v prostøedí, kde opravu chyb dokáže zajistit jiná technologie, napø. DVD, video na disku, atd.\n\nMPEG PS pøehraje jakýkoliv software pro sledovani videa. Pro pøehrání MPEG TS kontejneru, je již potøebný vìtšinou nìjaký plugin. Pro programy používající DirectShow, jako napøíklad Windows Media Player, BSPlayer, MV2Player lze použít Haali Media Splitter. Pøehrátí MPEG TS bez instalace pluginu umí tøeba VLC, nebo pøeportovaný MPlayer na Windows.\n\nPoznámka: VLC 0.7.x a pravdìpodobnì i nišší, má problémy s vytváøením MPEG PS kontejnerù (projevuje se to, že se nelze posouvat ve videu, pøípadnì pøi posunutí pøehrávaè spadne - pøíklad Windows Media Playeru). Proto pro použití MPEG PS kontejneru doporuèuji použít poslední verzi VLC, která tyto problémy nemá.",
-                Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+		private void btnContainerHelp_Click(object sender, EventArgs e)
+		{
+			MessageBox.Show("MPEG TS (Transport Stream) se používá pro pøenášení MPEG záznamu v prostøedí, kde mohou vznikat chyby, napø: DVB-T, streamovaní po síti, atd. Narozdíl od toho se MPEG PS (Programm Stream) využívá v prostøedí, kde opravu chyb dokáže zajistit jiná technologie, napø. DVD, video na disku, atd.\n\nMPEG PS pøehraje jakýkoliv software pro sledovani videa. Pro pøehrání MPEG TS kontejneru, je již potøebný vìtšinou nìjaký plugin. Pro programy používající DirectShow, jako napøíklad Windows Media Player, BSPlayer, MV2Player lze použít Haali Media Splitter. Pøehrátí MPEG TS bez instalace pluginu umí tøeba VLC, nebo pøeportovaný MPlayer na Windows.\n\nPoznámka: VLC 0.7.x a pravdìpodobnì i nišší, má problémy s vytváøením MPEG PS kontejnerù (projevuje se to, že se nelze posouvat ve videu, pøípadnì pøi posunutí pøehrávaè spadne - pøíklad Windows Media Playeru). Proto pro použití MPEG PS kontejneru doporuèuji použít poslední verzi VLC, která tyto problémy nemá.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
 
-        private void lstChannel_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var channel = (Channel) lstChannel.SelectedItem;
+		private void lstChannel_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			var channel = (Channel) lstChannel.SelectedItem;
 
-            if (channel == null)
-            {
-                btnChannelSave.Enabled = false;
-                btnChannelDelete.Enabled = false;
+			if (channel == null)
+			{
+				btnChannelSave.Enabled = false;
+				btnChannelDelete.Enabled = false;
 
-                btnChannelUp.Enabled = false;
-                btnChannelDown.Enabled = false;
+				btnChannelUp.Enabled = false;
+				btnChannelDown.Enabled = false;
 
-                txtChannelName.Text = "";
-                txtChannelUri.Text = "";
-                txtChannelId.Text = "";
+				txtChannelName.Text = "";
+				txtChannelUri.Text = "";
+				txtChannelId.Text = "";
 
-                txtChannelName.Enabled = false;
-                txtChannelUri.Enabled = false;
-                txtChannelId.Enabled = false;
-                return;
-            }
-            
-            btnChannelSave.Enabled = true;
-            btnChannelDelete.Enabled = true;
+				txtChannelName.Enabled = false;
+				txtChannelUri.Enabled = false;
+				txtChannelId.Enabled = false;
+				return;
+			}
 
-            txtChannelName.Enabled = true;
-            txtChannelUri.Enabled = true;
-            txtChannelId.Enabled = true;
+			btnChannelSave.Enabled = true;
+			btnChannelDelete.Enabled = true;
 
-            btnChannelUp.Enabled = (lstChannel.SelectedIndex > 0);
-            btnChannelDown.Enabled = (lstChannel.SelectedIndex < lstChannel.Items.Count - 1);
+			txtChannelName.Enabled = true;
+			txtChannelUri.Enabled = true;
+			txtChannelId.Enabled = true;
 
-            txtChannelName.Text = channel.getName();
-            txtChannelUri.Text = channel.getUri();
-            txtChannelId.Text = channel.getId();
-        }
+			btnChannelUp.Enabled = (lstChannel.SelectedIndex > 0);
+			btnChannelDown.Enabled = (lstChannel.SelectedIndex < lstChannel.Items.Count - 1);
 
-        private void btnChannelDelete_Click(object sender, EventArgs e)
-        {
-            int selectedIndex = lstChannel.SelectedIndex;
+			txtChannelName.Text = channel.getName();
+			txtChannelUri.Text = channel.getUri();
+			txtChannelId.Text = channel.getId();
+		}
 
-            lstChannel.Items.Remove(lstChannel.SelectedItem);
+		private void btnChannelDelete_Click(object sender, EventArgs e)
+		{
+			var selectedIndex = lstChannel.SelectedIndex;
 
-            if (lstChannel.Items.Count > 0)
-            {
-                if (lstChannel.Items.Count > selectedIndex)
-                    lstChannel.SelectedIndex = selectedIndex;
-                else if (lstChannel.Items.Count == selectedIndex)
-                    lstChannel.SelectedIndex = lstChannel.Items.Count - 1;
-            }
-        }
+			lstChannel.Items.Remove(lstChannel.SelectedItem);
 
-        private void btnChannelSave_Click(object sender, EventArgs e)
-        {
-            lstChannel.Items[lstChannel.SelectedIndex] = new Channel(txtChannelName.Text, txtChannelUri.Text, txtChannelId.Text);
-        }
+			if (lstChannel.Items.Count <= 0)
+				return;
 
-        private void btnChannelAdd_Click(object sender, EventArgs e)
-        {
-            lstChannel.SelectedIndex = lstChannel.Items.Add(new Channel("Název kanálu", "udp://@", ""));
-        }
+			if (lstChannel.Items.Count > selectedIndex)
+				lstChannel.SelectedIndex = selectedIndex;
+			else if (lstChannel.Items.Count == selectedIndex)
+				lstChannel.SelectedIndex = lstChannel.Items.Count - 1;
+		}
 
-        private void btnChannelUp_Click(object sender, EventArgs e)
-        {
-            int index = lstChannel.SelectedIndex;
-            Object temp = lstChannel.Items[index - 1];
+		private void btnChannelSave_Click(object sender, EventArgs e)
+		{
+			lstChannel.Items[lstChannel.SelectedIndex] = new Channel(txtChannelName.Text, txtChannelUri.Text, txtChannelId.Text);
+		}
 
-            lstChannel.Items[index - 1] = lstChannel.Items[index];
-            lstChannel.Items[index] = temp;
+		private void btnChannelAdd_Click(object sender, EventArgs e)
+		{
+			lstChannel.SelectedIndex = lstChannel.Items.Add(new Channel("Název kanálu", "udp://@", ""));
+		}
 
-            lstChannel.SelectedIndex = index - 1;
-        }
+		private void btnChannelUp_Click(object sender, EventArgs e)
+		{
+			var index = lstChannel.SelectedIndex;
+			var temp = lstChannel.Items[index - 1];
 
-        private void btnChannelDown_Click(object sender, EventArgs e)
-        {
-            int index = lstChannel.SelectedIndex;
-            Object temp = lstChannel.Items[index + 1];
+			lstChannel.Items[index - 1] = lstChannel.Items[index];
+			lstChannel.Items[index] = temp;
 
-            lstChannel.Items[index + 1] = lstChannel.Items[index];
-            lstChannel.Items[index] = temp;
+			lstChannel.SelectedIndex = index - 1;
+		}
 
-            lstChannel.SelectedIndex = index + 1;
-        }
+		private void btnChannelDown_Click(object sender, EventArgs e)
+		{
+			var index = lstChannel.SelectedIndex;
+			var temp = lstChannel.Items[index + 1];
 
-        private void btnImport_Click(object sender, EventArgs e)
-        {
-            if (importFile.ShowDialog() == DialogResult.OK)
-            {
-                var ch = new Channels(settings);
-                Channel[] channels = ch.loadChannelsFromFile(importFile.FileName);
-                ch.setChannels(channels);
+			lstChannel.Items[index + 1] = lstChannel.Items[index];
+			lstChannel.Items[index] = temp;
 
-                lstChannel.Items.Clear();
-                foreach (Channel channel in channels)
-                    lstChannel.Items.Add(channel);
-            }
-        }
+			lstChannel.SelectedIndex = index + 1;
+		}
 
-        private void btnExport_Click(object sender, EventArgs e)
-        {
-            if (exportFile.ShowDialog() == DialogResult.OK)
-            {
-                var channels = new Channels(settings);
-                channels.saveChannelsToFile(exportFile.FileName, channels.getChannels());
-            }
-        }
+		private void btnImport_Click(object sender, EventArgs e)
+		{
+			if (importFile.ShowDialog() != DialogResult.OK)
+				return;
 
-        private void btnRegisterScheduleProtocol_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //misto HKCR pouzijeme HKCU\Software\Classes, kam lze zapisovat i bez administratorskych prav, napr ve Windows Vista
-                using (RegistryKey scheduleKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\schedule")) {
-                    if (scheduleKey != null)
-                    {
-                        scheduleKey.SetValue(null, "URL:Schedule Protocol");
+			var ch = new Channels(settings);
+			var channels = ch.loadChannelsFromFile(importFile.FileName);
+			ch.setChannels(channels);
 
-                        scheduleKey.SetValue("URL Protocol", "");
-                        scheduleKey.CreateSubKey("DefaultIcon").SetValue(null, string.Format("{0},1",
-                                                                                             Process.GetCurrentProcess().MainModule.
-                                                                                                 FileName));
-                        scheduleKey.CreateSubKey("shell\\open\\command").SetValue(null,
-                                                                                  string.Format("\"{0}\" \"%1\"",
-                                                                                                Process.GetCurrentProcess().MainModule.
-                                                                                                    FileName));
-                    }
-                }
-                MessageBox.Show(this, "Protokol schedule byl úspìšnì zaregistrován.", Text, MessageBoxButtons.OK,
-                                MessageBoxIcon.Information);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(this,
-                                "Protokol schedule se nepovedlo zaregistrovat.\nPravdìpodobnì nemáte pro tuto operaci dostateèná práva.",
-                                Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            }
+			lstChannel.Items.Clear();
+			foreach (var channel in channels)
+				lstChannel.Items.Add(channel);
+		}
 
-            CheckScheduleProtocolRegistration();
-        }
+		private void btnExport_Click(object sender, EventArgs e)
+		{
+			if (exportFile.ShowDialog() != DialogResult.OK)
+				return;
 
-        private void btnScheduleHelp_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show(
-                "Protokol schedule slouží k pøedání všech parametrù pro vytvoøení nahrávání \nz webového prostøedí probramu Nahrávadlo. Tedy jedním kliknutím lze pøedvyplnit políèka \npro založení nového nahrávání. Více informací naleznete v nápovìdì programu.",
-                Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
+			var channels = new Channels(settings);
+			channels.saveChannelsToFile(exportFile.FileName, channels.getChannels());
+		}
 
-        private void btnUnregisterScheduleProtocol_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree))
-                {
-                    if (key != null) key.DeleteSubKeyTree("schedule");
-                }
-                MessageBox.Show(this, "Protokol schedule byl úspìšnì odregistrován.", Text, MessageBoxButtons.OK,
-                                MessageBoxIcon.Information);
-            }
-            catch (Exception ex) {
-                Console.WriteLine(ex);
-            }
+		private void btnRegisterScheduleProtocol_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				//misto HKCR pouzijeme HKCU\Software\Classes, kam lze zapisovat i bez administratorskych prav, napr ve Windows Vista
+				using (var scheduleKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\schedule"))
+				{
+					if (scheduleKey != null)
+					{
+						scheduleKey.SetValue(null, "URL:Schedule Protocol");
 
-            CheckScheduleProtocolRegistration();
-        }
+						scheduleKey.SetValue("URL Protocol", "");
+						scheduleKey.CreateSubKey("DefaultIcon").SetValue(null, string.Format("{0},1", Process.GetCurrentProcess().MainModule.FileName));
+						scheduleKey.CreateSubKey("shell\\open\\command").SetValue(null, string.Format("\"{0}\" \"%1\"", Process.GetCurrentProcess().MainModule.FileName));
+					}
+				}
+				MessageBox.Show(this, "Protokol schedule byl úspìšnì zaregistrován.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			catch (Exception)
+			{
+				MessageBox.Show(this, "Protokol schedule se nepovedlo zaregistrovat.\nPravdìpodobnì nemáte pro tuto operaci dostateèná práva.", Text, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+			}
 
-        private void CheckScheduleProtocolRegistration()
-        {
-            try
-            {
-                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software\\Classes\\schedule"))
-                {
-                    if (key != null)
-                    {
-                        btnUnregisterScheduleProtocol.Enabled = true;
-                        return;
-                    }
-                }
-            }
-            catch {}
-            btnUnregisterScheduleProtocol.Enabled = false;
-        }
-    }
+			CheckScheduleProtocolRegistration();
+		}
+
+		private void btnScheduleHelp_Click(object sender, EventArgs e)
+		{
+			MessageBox.Show("Protokol schedule slouží k pøedání všech parametrù pro vytvoøení nahrávání \nz webového prostøedí probramu Nahrávadlo. Tedy jedním kliknutím lze pøedvyplnit políèka \npro založení nového nahrávání. Více informací naleznete v nápovìdì programu.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+		}
+
+		private void btnUnregisterScheduleProtocol_Click(object sender, EventArgs e)
+		{
+			try
+			{
+				using (var key = Registry.CurrentUser.OpenSubKey("Software\\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree))
+				{
+					if (key != null)
+						key.DeleteSubKeyTree("schedule");
+				}
+				MessageBox.Show(this, "Protokol schedule byl úspìšnì odregistrován.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex);
+			}
+
+			CheckScheduleProtocolRegistration();
+		}
+
+		private void CheckScheduleProtocolRegistration()
+		{
+			try
+			{
+				using (var key = Registry.CurrentUser.OpenSubKey("Software\\Classes\\schedule"))
+				{
+					if (key != null)
+					{
+						btnUnregisterScheduleProtocol.Enabled = true;
+						return;
+					}
+				}
+			}
+			catch {}
+			btnUnregisterScheduleProtocol.Enabled = false;
+		}
+	}
 }
