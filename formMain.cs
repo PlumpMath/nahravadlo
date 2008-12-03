@@ -408,6 +408,8 @@ namespace Nahravadlo
 			f.ShowDialog(this);
 			if (f.DialogResult == DialogResult.OK)
 				LoadConfig();
+
+			TestUACElevation(false);
 		}
 
 		private void timer_Tick(object sender, EventArgs e)

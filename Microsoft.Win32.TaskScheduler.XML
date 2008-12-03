@@ -279,6 +279,9 @@
             <summary>
             Gets or sets the amount of time that the Task Scheduler will wait before deleting the task after it expires.
             </summary>
+            <remarks>
+            For Task Scheduler 1.0, this property will return a TimeSpan of 1 second if the task is set to delete when done. For either version, TimeSpan.Zero will indicate that the task should not be deleted.
+            </remarks>
         </member>
         <member name="P:Microsoft.Win32.TaskScheduler.TaskSettings.Priority">
             <summary>
@@ -584,6 +587,16 @@
             Gets the process ID for the engine (process) which is running the task.
             </summary>
         </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.NotV1SupportedException">
+            <summary>
+            Thrown when the calling method is not supported by Task Scheduler 1.0.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.NotV1SupportedException.Message">
+            <summary>
+            Gets a message that describes the current exception.
+            </summary>
+        </member>
         <member name="T:Microsoft.Win32.TaskScheduler.V1Interop.TaskFlags">
             <summary>
             Options for a task, used for the Flags property of a Task. Uses the
@@ -726,407 +739,6 @@
         <member name="F:Microsoft.Win32.TaskScheduler.V1Interop.TaskTriggerType.OnLogon">
             <summary>Trigger is set to run the task when a user logs on. </summary>
         </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.TaskFolder">
-            <summary>
-            Provides the methods that are used to register (create) tasks in the folder, remove tasks from the folder, and create or remove subfolders from the folder.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.CreateFolder(System.String,System.String)">
-            <summary>
-            Creates a folder for related tasks. Not available to Task Scheduler 1.0.
-            </summary>
-            <param name="subFolderName">The name used to identify the folder. If "FolderName\SubFolder1\SubFolder2" is specified, the entire folder tree will be created if the folders do not exist. This parameter can be a relative path to the current <see cref="T:Microsoft.Win32.TaskScheduler.TaskFolder"/> instance. The root task folder is specified with a backslash (\). An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-            <param name="sddlForm">The name used to identify the folder. If "FolderName\SubFolder1\SubFolder2" is specified, the entire folder tree will be created if the folders do not exist. This parameter can be a relative path to the current ITaskFolder instance. The root task folder is specified with a backslash (\). An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.TaskFolder"/> instance that represents the new subfolder.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.DeleteFolder(System.String)">
-            <summary>
-            Deletes a subfolder from the parent folder. Not available to Task Scheduler 1.0.
-            </summary>
-            <param name="subFolderName">The name of the subfolder to be removed. The root task folder is specified with a backslash (\). This parameter can be a relative path to the folder you want to delete. An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.DeleteTask(System.String)">
-            <summary>
-            Deletes a task from the folder.
-            </summary>
-            <param name="Name">The name of the task that is specified when the task was registered. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTask(System.String,System.String,Microsoft.Win32.TaskScheduler.TaskCreation,System.String,System.String,Microsoft.Win32.TaskScheduler.TaskLogonType,System.String)">
-            <summary>
-            Registers (creates) a new task in the folder using XML to define the task. Not available for Task Scheduler 1.0.
-            </summary>
-            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-            <param name="XmlText">An XML-formatted definition of the task.</param>
-            <param name="createType">A union of <see cref="T:Microsoft.Win32.TaskScheduler.TaskCreation"/> flags.</param>
-            <param name="UserId">The user credentials used to register the task.</param>
-            <param name="password">The password for the userId used to register the task.</param>
-            <param name="LogonType">A <see cref="T:Microsoft.Win32.TaskScheduler.TaskLogonType"/> value that defines what logon technique is used to run the registered task.</param>
-            <param name="sddl">The security descriptor associated with the registered task. You can specify the access control list (ACL) in the security descriptor for a task in order to allow or deny certain users and groups access to a task.</param>
-            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTaskDefinition(System.String,Microsoft.Win32.TaskScheduler.TaskDefinition)">
-            <summary>
-            Registers (creates) a task in a specified location using a <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> instance to define a task.
-            </summary>
-            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-            <param name="definition">The <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> of the registered task.</param>
-            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTaskDefinition(System.String,Microsoft.Win32.TaskScheduler.TaskDefinition,Microsoft.Win32.TaskScheduler.TaskCreation,System.String,System.String,Microsoft.Win32.TaskScheduler.TaskLogonType,System.String)">
-            <summary>
-            Registers (creates) a task in a specified location using a <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> instance to define a task.
-            </summary>
-            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
-            <param name="definition">The <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> of the registered task.</param>
-            <param name="createType">A union of <see cref="T:Microsoft.Win32.TaskScheduler.TaskCreation"/> flags.</param>
-            <param name="UserId">The user credentials used to register the task.</param>
-            <param name="password">The password for the userId used to register the task.</param>
-            <param name="LogonType">A <see cref="T:Microsoft.Win32.TaskScheduler.TaskLogonType"/> value that defines what logon technique is used to run the registered task.</param>
-            <param name="sddl">The security descriptor associated with the registered task. You can specify the access control list (ACL) in the security descriptor for a task in order to allow or deny certain users and groups access to a task.</param>
-            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.GetSecurityDescriptorSddlForm(System.Security.AccessControl.AccessControlSections)">
-            <summary>
-            Gets the security descriptor for the folder. Not available to Task Scheduler 1.0.
-            </summary>
-            <param name="includeSections">Section(s) of the security descriptor to return.</param>
-            <returns>The security descriptor for the folder.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.SetSecurityDescriptorSddlForm(System.String,System.Security.AccessControl.AccessControlSections)">
-            <summary>
-            Sets the security descriptor for the folder. Not available to Task Scheduler 1.0.
-            </summary>
-            <param name="sddlForm">The security descriptor for the folder.</param>
-            <param name="includeSections">Section(s) of the security descriptor to set.</param>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Name">
-            <summary>
-            Gets the name that is used to identify the folder that contains a task.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Path">
-            <summary>
-            Gets the path to where the folder is stored.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.SubFolders">
-            <summary>
-            Gets all the subfolders in the folder.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Tasks">
-            <summary>
-            Gets a collection of all the tasks in the folder.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.NotV1SupportedException">
-            <summary>
-            Thrown when the calling method is not supported by Task Scheduler 1.0.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.NotV1SupportedException.Message">
-            <summary>
-            Gets a message that describes the current exception.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.ActionCollection">
-            <summary>
-            Collection that contains the actions that are performed by the task.
-            </summary>
-            <remarks>A Task Scheduler 1.0 task can only contain a single <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/>.</remarks>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Add(Microsoft.Win32.TaskScheduler.Action)">
-            <summary>
-            Adds an action to the task.
-            </summary>
-            <param name="action">A derived <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> class.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)">
-            <summary>
-            Adds a new <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance to the task.
-            </summary>
-            <param name="actionType">Type of task to be created</param>
-            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Clear">
-            <summary>
-            Clears all actions from the task.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.RemoveAt(System.Int32)">
-            <summary>
-            Removes the action at a specified index.
-            </summary>
-            <param name="index">Index of action to remove.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">Index out of range.</exception>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.GetEnumerator">
-            <summary>
-            Retrieves an enumeration of each of the actions.
-            </summary>
-            <returns>Returns an object that implements the <see cref="T:System.Collections.IEnumerator"/> interface and that can iterate through the <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> objects within the <see cref="T:Microsoft.Win32.TaskScheduler.ActionCollection"/>.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Item(System.Int32)">
-            <summary>
-            Gets a specified action from the collection.
-            </summary>
-            <param name="index">The index of the action to be retrieved.</param>
-            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Context">
-            <summary>
-            Gets or sets the identifier of the principal for the task.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Count">
-            <summary>
-            Gets the number of actions in the collection.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.XmlText">
-            <summary>
-            Gets or sets an XML-formatted version of the collection.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Enumerator.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.TaskActionType">
-            <summary>
-            Defines the type of actions a task can perform.
-            </summary>
-            <remarks>The action type is defined when the action is created and cannot be changed later. See <see cref="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)"/>.</remarks>
-        </member>
-        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.ComHandler">
-            <summary>This action fires a handler.</summary>
-        </member>
-        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.Execute">
-            <summary>This action performs a command-line operation. For example, the action can run a script, launch an executable, or, if the name of a document is provided, find its associated application and launch the application with the document.</summary>
-        </member>
-        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.SendEmail">
-            <summary>This action sends and e-mail.</summary>
-        </member>
-        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.ShowMessage">
-            <summary>This action shows a message box.</summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.Action">
-            <summary>
-            Abstract base class that provides the common properties that are inherited by all action objects. An action object is created by the <see cref="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)"/> method.
-            </summary>
-        </member>
-        <member name="F:Microsoft.Win32.TaskScheduler.Action.unboundValues">
-            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.Action.Bind(Microsoft.Win32.TaskScheduler.V1Interop.ITask)">
-            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.Action.Bind(Microsoft.Win32.TaskScheduler.V2Interop.ITaskDefinition)">
-            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.Action.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.Action.ToString">
-            <summary>
-            Returns the action Id.
-            </summary>
-            <returns>String representation of action.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.Action.CreateAction(Microsoft.Win32.TaskScheduler.V2Interop.IAction)">
-            <summary>
-            Creates a specialized class from a defined interface.
-            </summary>
-            <param name="iAction">Version 2.0 Action interface.</param>
-            <returns>Specialized action class</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.Action.Bound">
-            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.Action.Id">
-            <summary>
-            Gets or sets the identifier of the action.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.ComHandlerAction">
-            <summary>
-            Represents an action that fires a handler. Only available on Task Scheduler 2.0.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ComHandlerAction.#ctor(System.Guid,System.String)">
-            <summary>
-            Creates an unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.ComHandlerAction"/>.
-            </summary>
-            <param name="classId">Identifier of the handler class.</param>
-            <param name="data">Addition data associated with the handler.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ComHandlerAction.ToString">
-            <summary>
-            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ComHandlerAction"/>.
-            </summary>
-            <returns>String represention this action.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ComHandlerAction.ClassId">
-            <summary>
-            Gets or sets the identifier of the handler class.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ComHandlerAction.Data">
-            <summary>
-            Gets or sets additional data that is associated with the handler.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.ExecAction">
-            <summary>
-            Represents an action that executes a command-line operation.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ExecAction.#ctor(System.String,System.String,System.String)">
-            <summary>
-            Creates a new instance of an <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/> that can be added to <see cref="P:Microsoft.Win32.TaskScheduler.TaskDefinition.Actions"/>.
-            </summary>
-            <param name="path">Path to an executable file.</param>
-            <param name="arguments">Arguments associated with the command-line operation. This value can be null.</param>
-            <param name="workingDirectory">Directory that contains either the executable file or the files that are used by the executable file. This value can be null.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ExecAction.ToString">
-            <summary>
-            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/>.
-            </summary>
-            <returns>String represention this action.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Id">
-            <summary>
-            Gets or sets the identifier of the action.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Path">
-            <summary>
-            Gets or sets the path to an executable file.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Arguments">
-            <summary>
-            Gets or sets the arguments associated with the command-line operation.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.WorkingDirectory">
-            <summary>
-            Gets or sets the directory that contains either the executable file or the files that are used by the executable file.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.EmailAction">
-            <summary>
-            Represents an action that sends an e-mail.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.EmailAction.#ctor(System.String,System.String,System.String,System.String,System.String)">
-            <summary>
-            Creates an unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.EmailAction"/>.
-            </summary>
-            <param name="subject">Subject of the e-mail.</param>
-            <param name="from">E-mail address that you want to send the e-mail from.</param>
-            <param name="to">E-mail address or addresses that you want to send the e-mail to.</param>
-            <param name="body">Body of the e-mail that contains the e-mail message.</param>
-            <param name="mailServer">Name of the server that you use to send e-mail from.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.EmailAction.ToString">
-            <summary>
-            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.EmailAction"/>.
-            </summary>
-            <returns>String represention this action.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Server">
-            <summary>
-            Gets or sets the name of the server that you use to send e-mail from.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Subject">
-            <summary>
-            Gets or sets the subject of the e-mail.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.To">
-            <summary>
-            Gets or sets the e-mail address or addresses that you want to send the e-mail to.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Cc">
-            <summary>
-            Gets or sets the e-mail address or addresses that you want to Cc in the e-mail.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Bcc">
-            <summary>
-            Gets or sets the e-mail address or addresses that you want to Bcc in the e-mail.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.ReplyTo">
-            <summary>
-            Gets or sets the e-mail address that you want to reply to.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.From">
-            <summary>
-            Gets or sets the e-mail address that you want to send the e-mail from.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.HeaderFields">
-            <summary>
-            Gets or sets the header information in the e-mail message to send.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Body">
-            <summary>
-            Gets or sets the body of the e-mail that contains the e-mail message.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Attachments">
-            <summary>
-            Gets or sets an array of attachments that is sent with the e-mail.
-            </summary>
-        </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.ShowMessageAction">
-            <summary>
-            Represents an action that shows a message box when a task is activated.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ShowMessageAction.#ctor(System.String,System.String)">
-            <summary>
-            Creates a new unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.ShowMessageAction"/>.
-            </summary>
-            <param name="messageBody">Message text that is displayed in the body of the message box.</param>
-            <param name="title">Title of the message box.</param>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.ShowMessageAction.ToString">
-            <summary>
-            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ShowMessageAction"/>.
-            </summary>
-            <returns>String represention this action.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ShowMessageAction.Title">
-            <summary>
-            Gets or sets the title of the message box.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.ShowMessageAction.MessageBody">
-            <summary>
-            Gets or sets the message text that is displayed in the body of the message box.
-            </summary>
-        </member>
         <member name="T:Microsoft.Win32.TaskScheduler.NamedValueCollection">
             <summary>
             Contains a collection of name-value pairs.
@@ -1180,69 +792,23 @@
             <param name="key">Key to get the value for.</param>
             <returns>Value for the key, or null if not found.</returns>
         </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.TriggerCollection">
+        <member name="T:Microsoft.Win32.TaskScheduler.WindowsImpersonatedIdentity">
             <summary>
-            Provides the methods that are used to add to, remove from, and get the triggers of a task.
+            Impersonation of a user. Allows to execute code under another
+            user context.
+            Please note that the account that instantiates the Impersonator class
+            needs to have the 'Act as part of operating system' privilege set.
             </summary>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Dispose">
+        <member name="M:Microsoft.Win32.TaskScheduler.WindowsImpersonatedIdentity.#ctor(System.String,System.String,System.String)">
             <summary>
-            Releases all resources used by this class.
+            Constructor. Starts the impersonation with the given credentials.
+            Please note that the account that instantiates the Impersonator class
+            needs to have the 'Act as part of operating system' privilege set.
             </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.GetEnumerator">
-            <summary>
-            Gets the collection enumerator for this collection.
-            </summary>
-            <returns>The <see cref="T:System.Collections.Generic.IEnumerator`1"/> for this collection.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Add(Microsoft.Win32.TaskScheduler.Trigger)">
-            <summary>
-            Add an unbound <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> to the task.
-            </summary>
-            <param name="unboundTrigger"><see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> derivative to add to the task.</param>
-            <returns>Bound trigger.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskTriggerType)">
-            <summary>
-            Add a new trigger to the collections of triggers for the task.
-            </summary>
-            <param name="taskTriggerType">The type of trigger to create.</param>
-            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> instance of the specified type.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Clear">
-            <summary>
-            Clears all triggers from the task.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.RemoveAt(System.Int32)">
-            <summary>
-            Removes the trigger at a specified index.
-            </summary>
-            <param name="index">Index of trigger to remove.</param>
-            <exception cref="T:System.ArgumentOutOfRangeException">Index out of range.</exception>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TriggerCollection.Count">
-            <summary>
-            Gets the number of triggers in the collection.
-            </summary>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TriggerCollection.Item(System.Int32)">
-            <summary>
-            Gets a specified trigger from the collection.
-            </summary>
-            <param name="index">The index of the trigger to be retrieved.</param>
-            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> instance.</returns>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.V1TriggerEnumerator.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
-        </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.V2TriggerEnumerator.Dispose">
-            <summary>
-            Releases all resources used by this class.
-            </summary>
+            <param name="userName">The name of the user to act as.</param>
+            <param name="domainName">The domain name of the user to act as.</param>
+            <param name="password">The password of the user to act as.</param>
         </member>
         <member name="T:Microsoft.Win32.TaskScheduler.TaskTriggerType">
             <summary>Defines the type of triggers that can be used by tasks.</summary>
@@ -1782,6 +1348,375 @@
             Gets or sets a delay time that is randomly added to the start time of the trigger.
             </summary>
         </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.TaskFolder">
+            <summary>
+            Provides the methods that are used to register (create) tasks in the folder, remove tasks from the folder, and create or remove subfolders from the folder.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.CreateFolder(System.String,System.String)">
+            <summary>
+            Creates a folder for related tasks. Not available to Task Scheduler 1.0.
+            </summary>
+            <param name="subFolderName">The name used to identify the folder. If "FolderName\SubFolder1\SubFolder2" is specified, the entire folder tree will be created if the folders do not exist. This parameter can be a relative path to the current <see cref="T:Microsoft.Win32.TaskScheduler.TaskFolder"/> instance. The root task folder is specified with a backslash (\). An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+            <param name="sddlForm">The name used to identify the folder. If "FolderName\SubFolder1\SubFolder2" is specified, the entire folder tree will be created if the folders do not exist. This parameter can be a relative path to the current ITaskFolder instance. The root task folder is specified with a backslash (\). An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.TaskFolder"/> instance that represents the new subfolder.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.DeleteFolder(System.String)">
+            <summary>
+            Deletes a subfolder from the parent folder. Not available to Task Scheduler 1.0.
+            </summary>
+            <param name="subFolderName">The name of the subfolder to be removed. The root task folder is specified with a backslash (\). This parameter can be a relative path to the folder you want to delete. An example of a task folder path, under the root task folder, is \MyTaskFolder. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.DeleteTask(System.String)">
+            <summary>
+            Deletes a task from the folder.
+            </summary>
+            <param name="Name">The name of the task that is specified when the task was registered. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTask(System.String,System.String,Microsoft.Win32.TaskScheduler.TaskCreation,System.String,System.String,Microsoft.Win32.TaskScheduler.TaskLogonType,System.String)">
+            <summary>
+            Registers (creates) a new task in the folder using XML to define the task. Not available for Task Scheduler 1.0.
+            </summary>
+            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+            <param name="XmlText">An XML-formatted definition of the task.</param>
+            <param name="createType">A union of <see cref="T:Microsoft.Win32.TaskScheduler.TaskCreation"/> flags.</param>
+            <param name="UserId">The user credentials used to register the task.</param>
+            <param name="password">The password for the userId used to register the task.</param>
+            <param name="LogonType">A <see cref="T:Microsoft.Win32.TaskScheduler.TaskLogonType"/> value that defines what logon technique is used to run the registered task.</param>
+            <param name="sddl">The security descriptor associated with the registered task. You can specify the access control list (ACL) in the security descriptor for a task in order to allow or deny certain users and groups access to a task.</param>
+            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTaskDefinition(System.String,Microsoft.Win32.TaskScheduler.TaskDefinition)">
+            <summary>
+            Registers (creates) a task in a specified location using a <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> instance to define a task.
+            </summary>
+            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+            <param name="definition">The <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> of the registered task.</param>
+            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTaskDefinition(System.String,Microsoft.Win32.TaskScheduler.TaskDefinition,Microsoft.Win32.TaskScheduler.TaskCreation,System.String,System.String,Microsoft.Win32.TaskScheduler.TaskLogonType,System.String)">
+            <summary>
+            Registers (creates) a task in a specified location using a <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> instance to define a task.
+            </summary>
+            <param name="Path">The task name. If this value is NULL, the task will be registered in the root task folder and the task name will be a GUID value that is created by the Task Scheduler service. A task name cannot begin or end with a space character. The '.' character cannot be used to specify the current task folder and the '..' characters cannot be used to specify the parent task folder in the path.</param>
+            <param name="definition">The <see cref="T:Microsoft.Win32.TaskScheduler.TaskDefinition"/> of the registered task.</param>
+            <param name="createType">A union of <see cref="T:Microsoft.Win32.TaskScheduler.TaskCreation"/> flags.</param>
+            <param name="UserId">The user credentials used to register the task.</param>
+            <param name="password">The password for the userId used to register the task.</param>
+            <param name="LogonType">A <see cref="T:Microsoft.Win32.TaskScheduler.TaskLogonType"/> value that defines what logon technique is used to run the registered task.</param>
+            <param name="sddl">The security descriptor associated with the registered task. You can specify the access control list (ACL) in the security descriptor for a task in order to allow or deny certain users and groups access to a task.</param>
+            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Task"/> instance that represents the new task.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.GetSecurityDescriptorSddlForm(System.Security.AccessControl.AccessControlSections)">
+            <summary>
+            Gets the security descriptor for the folder. Not available to Task Scheduler 1.0.
+            </summary>
+            <param name="includeSections">Section(s) of the security descriptor to return.</param>
+            <returns>The security descriptor for the folder.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolder.SetSecurityDescriptorSddlForm(System.String,System.Security.AccessControl.AccessControlSections)">
+            <summary>
+            Sets the security descriptor for the folder. Not available to Task Scheduler 1.0.
+            </summary>
+            <param name="sddlForm">The security descriptor for the folder.</param>
+            <param name="includeSections">Section(s) of the security descriptor to set.</param>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Name">
+            <summary>
+            Gets the name that is used to identify the folder that contains a task.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Path">
+            <summary>
+            Gets the path to where the folder is stored.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.SubFolders">
+            <summary>
+            Gets all the subfolders in the folder.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolder.Tasks">
+            <summary>
+            Gets a collection of all the tasks in the folder.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.TaskActionType">
+            <summary>
+            Defines the type of actions a task can perform.
+            </summary>
+            <remarks>The action type is defined when the action is created and cannot be changed later. See <see cref="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)"/>.</remarks>
+        </member>
+        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.ComHandler">
+            <summary>This action fires a handler.</summary>
+        </member>
+        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.Execute">
+            <summary>This action performs a command-line operation. For example, the action can run a script, launch an executable, or, if the name of a document is provided, find its associated application and launch the application with the document.</summary>
+        </member>
+        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.SendEmail">
+            <summary>This action sends and e-mail.</summary>
+        </member>
+        <member name="F:Microsoft.Win32.TaskScheduler.TaskActionType.ShowMessage">
+            <summary>This action shows a message box.</summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.Action">
+            <summary>
+            Abstract base class that provides the common properties that are inherited by all action objects. An action object is created by the <see cref="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)"/> method.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Win32.TaskScheduler.Action.unboundValues">
+            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.Action.Bind(Microsoft.Win32.TaskScheduler.V1Interop.ITask)">
+            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.Action.Bind(Microsoft.Win32.TaskScheduler.V2Interop.ITaskDefinition)">
+            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.Action.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.Action.ToString">
+            <summary>
+            Returns the action Id.
+            </summary>
+            <returns>String representation of action.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.Action.CreateAction(Microsoft.Win32.TaskScheduler.V2Interop.IAction)">
+            <summary>
+            Creates a specialized class from a defined interface.
+            </summary>
+            <param name="iAction">Version 2.0 Action interface.</param>
+            <returns>Specialized action class</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.Action.Bound">
+            <summary>In testing and may change. Do not use until officially introduced into library.</summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.Action.Id">
+            <summary>
+            Gets or sets the identifier of the action.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.ComHandlerAction">
+            <summary>
+            Represents an action that fires a handler. Only available on Task Scheduler 2.0.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ComHandlerAction.#ctor(System.Guid,System.String)">
+            <summary>
+            Creates an unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.ComHandlerAction"/>.
+            </summary>
+            <param name="classId">Identifier of the handler class.</param>
+            <param name="data">Addition data associated with the handler.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ComHandlerAction.ToString">
+            <summary>
+            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ComHandlerAction"/>.
+            </summary>
+            <returns>String represention this action.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ComHandlerAction.ClassId">
+            <summary>
+            Gets or sets the identifier of the handler class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ComHandlerAction.Data">
+            <summary>
+            Gets or sets additional data that is associated with the handler.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.ExecAction">
+            <summary>
+            Represents an action that executes a command-line operation.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ExecAction.#ctor(System.String,System.String,System.String)">
+            <summary>
+            Creates a new instance of an <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/> that can be added to <see cref="P:Microsoft.Win32.TaskScheduler.TaskDefinition.Actions"/>.
+            </summary>
+            <param name="path">Path to an executable file.</param>
+            <param name="arguments">Arguments associated with the command-line operation. This value can be null.</param>
+            <param name="workingDirectory">Directory that contains either the executable file or the files that are used by the executable file. This value can be null.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ExecAction.ToString">
+            <summary>
+            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/>.
+            </summary>
+            <returns>String represention this action.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Id">
+            <summary>
+            Gets or sets the identifier of the action.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Path">
+            <summary>
+            Gets or sets the path to an executable file.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.Arguments">
+            <summary>
+            Gets or sets the arguments associated with the command-line operation.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ExecAction.WorkingDirectory">
+            <summary>
+            Gets or sets the directory that contains either the executable file or the files that are used by the executable file.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.EmailAction">
+            <summary>
+            Represents an action that sends an e-mail.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.EmailAction.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates an unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.EmailAction"/>.
+            </summary>
+            <param name="subject">Subject of the e-mail.</param>
+            <param name="from">E-mail address that you want to send the e-mail from.</param>
+            <param name="to">E-mail address or addresses that you want to send the e-mail to.</param>
+            <param name="body">Body of the e-mail that contains the e-mail message.</param>
+            <param name="mailServer">Name of the server that you use to send e-mail from.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.EmailAction.ToString">
+            <summary>
+            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.EmailAction"/>.
+            </summary>
+            <returns>String represention this action.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Server">
+            <summary>
+            Gets or sets the name of the server that you use to send e-mail from.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Subject">
+            <summary>
+            Gets or sets the subject of the e-mail.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.To">
+            <summary>
+            Gets or sets the e-mail address or addresses that you want to send the e-mail to.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Cc">
+            <summary>
+            Gets or sets the e-mail address or addresses that you want to Cc in the e-mail.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Bcc">
+            <summary>
+            Gets or sets the e-mail address or addresses that you want to Bcc in the e-mail.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.ReplyTo">
+            <summary>
+            Gets or sets the e-mail address that you want to reply to.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.From">
+            <summary>
+            Gets or sets the e-mail address that you want to send the e-mail from.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.HeaderFields">
+            <summary>
+            Gets or sets the header information in the e-mail message to send.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Body">
+            <summary>
+            Gets or sets the body of the e-mail that contains the e-mail message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.EmailAction.Attachments">
+            <summary>
+            Gets or sets an array of attachments that is sent with the e-mail.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.ShowMessageAction">
+            <summary>
+            Represents an action that shows a message box when a task is activated.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ShowMessageAction.#ctor(System.String,System.String)">
+            <summary>
+            Creates a new unbound instance of <see cref="T:Microsoft.Win32.TaskScheduler.ShowMessageAction"/>.
+            </summary>
+            <param name="messageBody">Message text that is displayed in the body of the message box.</param>
+            <param name="title">Title of the message box.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ShowMessageAction.ToString">
+            <summary>
+            Gets a string representation of the <see cref="T:Microsoft.Win32.TaskScheduler.ShowMessageAction"/>.
+            </summary>
+            <returns>String represention this action.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ShowMessageAction.Title">
+            <summary>
+            Gets or sets the title of the message box.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ShowMessageAction.MessageBody">
+            <summary>
+            Gets or sets the message text that is displayed in the body of the message box.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Win32.TaskScheduler.TaskFolderCollection">
+            <summary>
+            Provides information and control for a collection of folders that contain tasks.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.CopyTo(Microsoft.Win32.TaskScheduler.TaskFolder[],System.Int32)">
+            <summary>
+            Copies the elements of the ICollection to an Array, starting at a particular Array index.
+            </summary>
+            <param name="array">The one-dimensional Array that is the destination of the elements copied from <see cref="T:System.Collections.Generic.ICollection`1"/>. The Array must have zero-based indexing.</param>
+            <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.GetEnumerator">
+            <summary>
+            Gets a list of items in a collection.
+            </summary>
+            <returns>Enumerated list of items in the collection.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Item(System.Int32)">
+            <summary>
+            Gets the specified folder from the collection.
+            </summary>
+            <param name="index">The index of the folder to be retrieved.</param>
+            <returns>A TaskFolder instance that represents the requested folder.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Item(System.String)">
+            <summary>
+            Gets the specified folder from the collection.
+            </summary>
+            <param name="path">The path of the folder to be retrieved.</param>
+            <returns>A TaskFolder instance that represents the requested folder.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Count">
+            <summary>
+            Gets the number of items in the collection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.TaskFolderEnumerator.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
+        </member>
         <member name="T:Microsoft.Win32.TaskScheduler.TaskService">
             <summary>
             Provides access to the Task Scheduler service for managing registered tasks.
@@ -1838,6 +1773,13 @@
             <param name="includeHidden">True to include hidden tasks.</param>
             <returns><see cref="T:Microsoft.Win32.TaskScheduler.RunningTaskCollection"/> instance with the list of running tasks.</returns>
         </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TaskService.GetTask(System.String)">
+            <summary>
+            Gets the task with the specified path.
+            </summary>
+            <param name="taskPath">The task path.</param>
+            <returns>The task.</returns>
+        </member>
         <member name="M:Microsoft.Win32.TaskScheduler.TaskService.NewTask">
             <summary>
             Returns an empty task definition object to be filled in with settings and properties and then registered using the <see cref="M:Microsoft.Win32.TaskScheduler.TaskFolder.RegisterTaskDefinition(System.String,Microsoft.Win32.TaskScheduler.TaskDefinition)"/> method.
@@ -1876,70 +1818,138 @@
             Gets the root ("\") folder. For Task Scheduler 1.0, this is the only folder.
             </summary>
         </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.TaskFolderCollection">
+        <member name="T:Microsoft.Win32.TaskScheduler.TriggerCollection">
             <summary>
-            Provides information and control for a collection of folders that contain tasks.
+            Provides the methods that are used to add to, remove from, and get the triggers of a task.
             </summary>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Dispose">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Dispose">
             <summary>
             Releases all resources used by this class.
             </summary>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.CopyTo(Microsoft.Win32.TaskScheduler.TaskFolder[],System.Int32)">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.GetEnumerator">
             <summary>
-            Copies the elements of the ICollection to an Array, starting at a particular Array index.
+            Gets the collection enumerator for this collection.
             </summary>
-            <param name="array">The one-dimensional Array that is the destination of the elements copied from <see cref="T:System.Collections.Generic.ICollection`1"/>. The Array must have zero-based indexing.</param>
-            <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
+            <returns>The <see cref="T:System.Collections.Generic.IEnumerator`1"/> for this collection.</returns>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.GetEnumerator">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Add(Microsoft.Win32.TaskScheduler.Trigger)">
             <summary>
-            Gets a list of items in a collection.
+            Add an unbound <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> to the task.
             </summary>
-            <returns>Enumerated list of items in the collection.</returns>
+            <param name="unboundTrigger"><see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> derivative to add to the task.</param>
+            <returns>Bound trigger.</returns>
         </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Item(System.Int32)">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskTriggerType)">
             <summary>
-            Gets the specified folder from the collection.
+            Add a new trigger to the collections of triggers for the task.
             </summary>
-            <param name="index">The index of the folder to be retrieved.</param>
-            <returns>A TaskFolder instance that represents the requested folder.</returns>
+            <param name="taskTriggerType">The type of trigger to create.</param>
+            <returns>A <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> instance of the specified type.</returns>
         </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Item(System.String)">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.Clear">
             <summary>
-            Gets the specified folder from the collection.
-            </summary>
-            <param name="path">The path of the folder to be retrieved.</param>
-            <returns>A TaskFolder instance that represents the requested folder.</returns>
-        </member>
-        <member name="P:Microsoft.Win32.TaskScheduler.TaskFolderCollection.Count">
-            <summary>
-            Gets the number of items in the collection.
+            Clears all triggers from the task.
             </summary>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.TaskFolderCollection.TaskFolderEnumerator.Dispose">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.RemoveAt(System.Int32)">
+            <summary>
+            Removes the trigger at a specified index.
+            </summary>
+            <param name="index">Index of trigger to remove.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Index out of range.</exception>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TriggerCollection.Count">
+            <summary>
+            Gets the number of triggers in the collection.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.TriggerCollection.Item(System.Int32)">
+            <summary>
+            Gets a specified trigger from the collection.
+            </summary>
+            <param name="index">The index of the trigger to be retrieved.</param>
+            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Trigger"/> instance.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.V1TriggerEnumerator.Dispose">
             <summary>
             Releases all resources used by this class.
             </summary>
         </member>
-        <member name="T:Microsoft.Win32.TaskScheduler.WindowsImpersonatedIdentity">
+        <member name="M:Microsoft.Win32.TaskScheduler.TriggerCollection.V2TriggerEnumerator.Dispose">
             <summary>
-            Impersonation of a user. Allows to execute code under another
-            user context.
-            Please note that the account that instantiates the Impersonator class
-            needs to have the 'Act as part of operating system' privilege set.
+            Releases all resources used by this class.
             </summary>
         </member>
-        <member name="M:Microsoft.Win32.TaskScheduler.WindowsImpersonatedIdentity.#ctor(System.String,System.String,System.String)">
+        <member name="T:Microsoft.Win32.TaskScheduler.ActionCollection">
             <summary>
-            Constructor. Starts the impersonation with the given credentials.
-            Please note that the account that instantiates the Impersonator class
-            needs to have the 'Act as part of operating system' privilege set.
+            Collection that contains the actions that are performed by the task.
             </summary>
-            <param name="userName">The name of the user to act as.</param>
-            <param name="domainName">The domain name of the user to act as.</param>
-            <param name="password">The password of the user to act as.</param>
+            <remarks>A Task Scheduler 1.0 task can only contain a single <see cref="T:Microsoft.Win32.TaskScheduler.ExecAction"/>.</remarks>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Add(Microsoft.Win32.TaskScheduler.Action)">
+            <summary>
+            Adds an action to the task.
+            </summary>
+            <param name="action">A derived <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> class.</param>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.AddNew(Microsoft.Win32.TaskScheduler.TaskActionType)">
+            <summary>
+            Adds a new <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance to the task.
+            </summary>
+            <param name="actionType">Type of task to be created</param>
+            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance.</returns>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Clear">
+            <summary>
+            Clears all actions from the task.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.RemoveAt(System.Int32)">
+            <summary>
+            Removes the action at a specified index.
+            </summary>
+            <param name="index">Index of action to remove.</param>
+            <exception cref="T:System.ArgumentOutOfRangeException">Index out of range.</exception>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.GetEnumerator">
+            <summary>
+            Retrieves an enumeration of each of the actions.
+            </summary>
+            <returns>Returns an object that implements the <see cref="T:System.Collections.IEnumerator"/> interface and that can iterate through the <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> objects within the <see cref="T:Microsoft.Win32.TaskScheduler.ActionCollection"/>.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Item(System.Int32)">
+            <summary>
+            Gets a specified action from the collection.
+            </summary>
+            <param name="index">The index of the action to be retrieved.</param>
+            <returns>Specialized <see cref="T:Microsoft.Win32.TaskScheduler.Action"/> instance.</returns>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Context">
+            <summary>
+            Gets or sets the identifier of the principal for the task.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.Count">
+            <summary>
+            Gets the number of actions in the collection.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Win32.TaskScheduler.ActionCollection.XmlText">
+            <summary>
+            Gets or sets an XML-formatted version of the collection.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Win32.TaskScheduler.ActionCollection.Enumerator.Dispose">
+            <summary>
+            Releases all resources used by this class.
+            </summary>
         </member>
         <member name="T:Microsoft.Win32.TaskScheduler.TaskCollection">
             <summary>
