@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Security.Principal;
 using System.Web;
 using System.Windows.Forms;
+using Nahravadlo.Schedule;
 
 namespace Nahravadlo
 {
@@ -186,7 +186,7 @@ namespace Nahravadlo
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex);
+                MessageBox.Show(ex.ToString());
 				MessageBox.Show("Nepovedlo se pøidat nahrávání.\n\nUjistìte se, že název nahrávání neobsahuje následující znaky:\n/ \\ : * ? \" < > |", Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}

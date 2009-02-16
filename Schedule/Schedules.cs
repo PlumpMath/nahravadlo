@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Win32.TaskScheduler;
 
-namespace Nahravadlo
+namespace Nahravadlo.Schedule
 {
 	public class Schedules
 	{
