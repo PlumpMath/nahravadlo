@@ -12,7 +12,7 @@ namespace Nahravadlo
 			this.option = option;
 		}
 
-		public Channel[] getChannels()
+		public Channel[] Get()
 		{
 			var nodes = option.getNodes("nahravadlo/programy/program");
 			if (nodes.Count == 0)
@@ -22,11 +22,11 @@ namespace Nahravadlo
 				return new Channel[0];
 
 			var ret = new Channel[nodes.Count];
-			for (var i = 0; i < nodes.Count; i++)
-			{
+		    var i = 0;
+			foreach (XmlNode node in nodes) 
+            {
 				string name = "", uri = "", id = "";
-				var node = nodes[i];
-
+				
 				//back compatibility
 				if (node.SelectNodes("nazev").Count != 0)
 					name = node.SelectSingleNode("nazev").InnerText;
@@ -39,31 +39,32 @@ namespace Nahravadlo
 					id = node.SelectSingleNode("id").InnerText;
 
 				ret[i] = new Channel(name, uri, id);
+                i++;
 			}
 
 			return ret;
 		}
 
-		public Channel getChannelFromUri(string uri)
+		public Channel ChannelFromUri(string uri)
 		{
-			var ch = getChannels();
+			var ch = Get();
 
 			for (var i = 0; i < ch.Length; i++)
 			{
-				if (ch[i].getUri() == uri)
+				if (ch[i].Uri == uri)
 					return ch[i];
 			}
 			return null;
 		}
 
-		public Channel getChannelFromId(string id)
+		public Channel ChannelFromId(string id)
 		{
-			var ch = getChannels();
+			var ch = Get();
 			id = id.ToLower();
 
 			for (var i = 0; i < ch.Length; i++)
 			{
-				var chIds = ch[i].getId().Split(',');
+				var chIds = ch[i].Id.Split(',');
 				foreach (var chId in chIds)
 				{
 					if (chId.Trim().ToLower().CompareTo(id) == 0)
@@ -73,7 +74,7 @@ namespace Nahravadlo
 			return null;
 		}
 
-		public void setChannels(Channel[] channels)
+		public void Set(Channel[] channels)
 		{
 			//delete old nodes
 			var nodes = option.getNodes("nahravadlo/programy");
@@ -96,21 +97,24 @@ namespace Nahravadlo
 			{
 				var chan = node.AppendChild(option.getXMLDocument().CreateElement("channel"));
 
-				if (channels[i].getName().Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("name")).InnerText = channels[i].getName();
-				if (channels[i].getUri().Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("uri")).InnerText = channels[i].getUri();
-				if (channels[i].getId().Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("id")).InnerText = channels[i].getId();
+				if (channels[i].Name.Length > 0)
+					chan.AppendChild(option.getXMLDocument().CreateElement("name")).InnerText = channels[i].Name;
+				if (channels[i].Uri.Length > 0)
+					chan.AppendChild(option.getXMLDocument().CreateElement("uri")).InnerText = channels[i].Uri;
+				if (channels[i].Id.Length > 0)
+					chan.AppendChild(option.getXMLDocument().CreateElement("id")).InnerText = channels[i].Id;
 			}
 		}
 
-		public Channel[] loadChannelsFromFile(string filename)
+		public Channel[] LoadFromFile(string filename)
 		{
 			var imp = new XmlDocument();
 			try
 			{
 				imp.Load(filename);
+                if (imp.DocumentElement == null)
+                    return new Channel[0];
+
 				var nspath = imp.DocumentElement.GetAttribute("xmlns");
 				var ns = new XmlNamespaceManager(imp.NameTable);
 				ns.AddNamespace(string.Empty, nspath);
@@ -143,7 +147,7 @@ namespace Nahravadlo
 			}
 		}
 
-		public void saveChannelsToFile(string filename, Channel[] channels)
+		public void SaveToFile(string filename, Channel[] channels)
 		{
 			var exp = new XmlDocument();
 
@@ -158,10 +162,10 @@ namespace Nahravadlo
 			{
 				var track = node.AppendChild(exp.CreateElement("track"));
 
-				track.AppendChild(exp.CreateElement("location")).InnerText = channels[i].getUri();
-				if (channels[i].getId().Length > 0)
-					track.AppendChild(exp.CreateElement("identifier")).InnerText = channels[i].getId();
-				track.AppendChild(exp.CreateElement("title")).InnerText = channels[i].getName();
+				track.AppendChild(exp.CreateElement("location")).InnerText = channels[i].Uri;
+				if (channels[i].Id.Length > 0)
+					track.AppendChild(exp.CreateElement("identifier")).InnerText = channels[i].Id;
+				track.AppendChild(exp.CreateElement("title")).InnerText = channels[i].Name;
 			}
 
 			if (!exp.OuterXml.Contains("<?xml"))
@@ -170,43 +174,52 @@ namespace Nahravadlo
 			exp.Save(filename);
 		}
 
-		public Channel[] getDefaultChannels()
+		public Channel[] DefaultChannels
 		{
-			return new[] {new Channel("ÈT1", "udp://@239.192.1.20:1234", "ct1.ceskatelevize.cz"), new Channel("ÈT2", "udp://@239.192.1.21:1234", "ct2.ceskatelevize.cz"), new Channel("Nova", "udp://@239.192.1.22:1234", "nova.nova.cz"), new Channel("Prima", "udp://@239.192.1.23:1234", "prima.iprima.cz"), new Channel("ÈT4 Sport", "udp://@239.192.1.24:1234", "ct4sport.ct24.cz"), new Channel("ÈT24", "udp://@239.192.1.25:1234", "ct24.ct24.cz"), new Channel("TA3", "udp://@233.10.47.11:1234", "ta3.ta3.com")};
+            get
+            {
+                return new[]
+                    {
+                        new Channel("ÈT1", "udp://@239.192.1.20:1234", "ct1.ceskatelevize.cz"),
+                        new Channel("ÈT2", "udp://@239.192.1.21:1234", "ct2.ceskatelevize.cz"),
+                        new Channel("Nova", "udp://@239.192.1.22:1234", "nova.nova.cz"),
+                        new Channel("Prima", "udp://@239.192.1.23:1234", "prima.iprima.cz"),
+                        new Channel("ÈT4 Sport", "udp://@239.192.1.24:1234", "ct4sport.ct24.cz"),
+                        new Channel("ÈT24", "udp://@239.192.1.25:1234", "ct24.ct24.cz"),
+                        new Channel("TA3", "udp://@233.10.47.11:1234", "ta3.ta3.com")
+                    };
+            }
 		}
 	}
 
 	internal class Channel
 	{
-		private readonly string id;
-		private readonly string name;
-		private readonly string uri;
-
+		
 		public Channel(string name, string uri, string id)
 		{
-			this.name = name;
-			this.uri = uri;
-			this.id = id;
+			Name = name;
+			Uri = uri;
+			Id = id;
 		}
 
-		public string getName()
-		{
-			return name;
-		}
+        public string Name
+        {
+            get; set;
+        }
 
-		public string getUri()
-		{
-			return uri;
-		}
+        public string Uri
+        {
+            get; set;
+        }
 
-		public string getId()
-		{
-			return id;
-		}
+        public string Id
+        {
+            get; set;
+        }
 
 		public override string ToString()
 		{
-			return getName();
+			return Name;
 		}
 	}
 

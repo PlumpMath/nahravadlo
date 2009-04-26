@@ -32,12 +32,12 @@ namespace Nahravadlo
 			var channels = new Channels(settings);
 
 			//Naplneni kanalu
-			foreach (var channel in channels.getChannels())
+			foreach (var channel in channels.Get())
 				cmbProgram.Items.Add(channel);
 
 			//vybereme kanal
-			if (channels.getChannelFromId(gid) != null)
-				cmbProgram.Text = channels.getChannelFromId(gid).ToString();
+			if (channels.ChannelFromId(gid) != null)
+				cmbProgram.Text = channels.ChannelFromId(gid).ToString();
 
 			//vlozime nazev nahravani
 			txtName.Text = Utils.CorrectFilename(name);
@@ -126,7 +126,7 @@ namespace Nahravadlo
 			{
 				job.Start = dteBegin.Value;
 				job.End = dteEnd.Value;
-				job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+				job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 				job.Filename = txtFilename.Text;
 				job.UseMPEGTS = formMain.useMpegTS;
 
@@ -145,7 +145,7 @@ namespace Nahravadlo
 			{
 				job.Start = dteBegin.Value;
 				job.End = dteEnd.Value;
-				job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+				job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 				job.Filename = txtFilename.Text;
 				job.UseMPEGTS = formMain.useMpegTS;
 
