@@ -15,9 +15,9 @@ namespace Nahravadlo
 		    Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			if (args.Length > 0)
-				Application.Run(new formMain(args));
+				Application.Run(new FormMain(args));
 			else
-				Application.Run(new formMain());
+				Application.Run(new FormMain());
 		}
 	}
 }

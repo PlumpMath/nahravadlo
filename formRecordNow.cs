@@ -4,34 +4,34 @@ using System.Windows.Forms;
 
 namespace Nahravadlo
 {
-	public partial class formRecordNow : Form
+	public partial class FormRecordNow : Form
 	{
-		private readonly bool filenameLowerCase;
-		private readonly string filenameMask = "%N.mpg";
-		private readonly int filenameSpaceReplacement;
-		private readonly bool filenameWithoutDiacritics;
+		private readonly bool _filenameLowerCase;
+		private readonly string _filenameMask = "%N.mpg";
+		private readonly int _filenameSpaceReplacement;
+		private readonly bool _filenameWithoutDiacritics;
 
-		public formRecordNow()
+		public FormRecordNow()
 		{
 			InitializeComponent();
-			populateCmbChannel();
+			PopulateCmbChannel();
 			cmdRunNow.Enabled = false;
 
-			var setting = Settings.getInstance();
+			var setting = Settings.GetInstance();
 
-			filenameMask = setting.getString("nahravadlo/config/filename/mask", "%N.mpg");
-			filenameWithoutDiacritics = setting.getBool("nahravadlo/config/filename/without_diacritics", false);
-			filenameLowerCase = setting.getBool("nahravadlo/config/filename/lower_case", false);
-			filenameSpaceReplacement = setting.getInt("nahravadlo/config/filename/space_replacement", 0);
-			if (filenameSpaceReplacement < 0 || filenameSpaceReplacement > 3)
-				filenameSpaceReplacement = 0;
+			_filenameMask = setting.GetString("nahravadlo/config/filename/mask", "%N.mpg");
+			_filenameWithoutDiacritics = setting.GetBool("nahravadlo/config/filename/without_diacritics", false);
+			_filenameLowerCase = setting.GetBool("nahravadlo/config/filename/lower_case", false);
+			_filenameSpaceReplacement = setting.GetInt("nahravadlo/config/filename/space_replacement", 0);
+			if (_filenameSpaceReplacement < 0 || _filenameSpaceReplacement > 3)
+				_filenameSpaceReplacement = 0;
 
 			ReformatFilename();
 		}
 
 		private void cmdBrowse_Click(object sender, EventArgs e)
 		{
-			dialog.InitialDirectory = formMain.defaultDirectory;
+			dialog.InitialDirectory = FormMain.DefaultDirectory;
 			dialog.FileName = txtFilename.Text;
 			dialog.OverwritePrompt = true;
 			dialog.Filter = "MPEG2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
@@ -40,10 +40,10 @@ namespace Nahravadlo
 				txtFilename.Text = dialog.FileName;
 		}
 
-		private void populateCmbChannel()
+		private void PopulateCmbChannel()
 		{
-			for (var i = 0; i < formMain.comboChannels.Items.Count; i++)
-				cmbChannel.Items.Add(formMain.comboChannels.Items[i]);
+			for (var i = 0; i < FormMain.ComboChannels.Items.Count; i++)
+				cmbChannel.Items.Add(FormMain.ComboChannels.Items[i]);
 			if (cmbChannel.Items.Count > 0)
 				cmbChannel.SelectedIndex = 0;
 		}
@@ -55,7 +55,7 @@ namespace Nahravadlo
 
 			if (chkPlayStream.Checked)
 				dst = "dst=display,";
-			if (formMain.useMpegTS)
+			if (FormMain.UseMpegTS)
 				mux = "ts";
 
 			//parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbChannel.SelectedItem).getUri(), txtFilename.Text);
@@ -65,7 +65,7 @@ namespace Nahravadlo
 
 			try
 			{
-				var psi = new ProcessStartInfo(formMain.vlc, parameters) {WorkingDirectory = formMain.defaultDirectory};
+				var psi = new ProcessStartInfo(FormMain.Vlc, parameters) {WorkingDirectory = FormMain.DefaultDirectory};
 				var process = Process.Start(psi);
 				if (process != null)
 					process.PriorityClass = ProcessPriorityClass.AboveNormal;
@@ -86,7 +86,7 @@ namespace Nahravadlo
 
 		private void ReformatFilename()
 		{
-			var tmp = filenameMask;
+			var tmp = _filenameMask;
 
 			tmp = tmp.Replace("%%", Char.ConvertFromUtf32(0));
 
@@ -103,12 +103,12 @@ namespace Nahravadlo
 
 			tmp = tmp.Replace("%L", "0");
 
-			if (filenameWithoutDiacritics)
+			if (_filenameWithoutDiacritics)
 				tmp = Utils.RemoveDiacritics(tmp);
-			if (filenameLowerCase)
+			if (_filenameLowerCase)
 				tmp = tmp.ToLower();
 
-			switch (filenameSpaceReplacement)
+			switch (_filenameSpaceReplacement)
 			{
 				case 1:
 					tmp = tmp.Replace(' ', '_');

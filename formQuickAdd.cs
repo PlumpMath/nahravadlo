@@ -4,32 +4,32 @@ using System.Windows.Forms;
 
 namespace Nahravadlo
 {
-	public partial class formQuickAdd : Form
+	public partial class FormQuickAdd : Form
 	{
-		private readonly bool filenameLowerCase;
-		private readonly string filenameMask = "%N.mpg";
-		private readonly int filenameSpaceReplacement;
-		private readonly bool filenameWithoutDiacritics;
-		private readonly Settings settings;
+		private readonly bool _filenameLowerCase;
+		private readonly string _filenameMask = "%N.mpg";
+		private readonly int _filenameSpaceReplacement;
+		private readonly bool _filenameWithoutDiacritics;
+		private readonly Settings _settings;
 
-		public formQuickAdd()
+		public FormQuickAdd()
 		{
-			settings = Settings.getInstance();
+			_settings = Settings.GetInstance();
 
-			filenameMask = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
-			filenameWithoutDiacritics = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
-			filenameLowerCase = settings.getBool("nahravadlo/config/filename/lower_case", false);
-			filenameSpaceReplacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
-			if (filenameSpaceReplacement < 0 || filenameSpaceReplacement > 3)
-				filenameSpaceReplacement = 0;
+			_filenameMask = _settings.GetString("nahravadlo/config/filename/mask", "%N.mpg");
+			_filenameWithoutDiacritics = _settings.GetBool("nahravadlo/config/filename/without_diacritics", false);
+			_filenameLowerCase = _settings.GetBool("nahravadlo/config/filename/lower_case", false);
+			_filenameSpaceReplacement = _settings.GetInt("nahravadlo/config/filename/space_replacement", 0);
+			if (_filenameSpaceReplacement < 0 || _filenameSpaceReplacement > 3)
+				_filenameSpaceReplacement = 0;
 		}
 
-		public formQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
+		public FormQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
 		{
 			InitializeComponent();
 			Application.EnableVisualStyles();
 
-			var channels = new Channels(settings);
+			var channels = new Channels(_settings);
 
 			//Naplneni kanalu
 			foreach (var channel in channels.Get())
@@ -49,7 +49,7 @@ namespace Nahravadlo
 			dteBegin.Value = start;
 
 			//posuneme konec nahravani, pokud je to nastaveny
-			stop += TimeSpan.FromMinutes(settings.getInt("nahravadlo/config/add_schedule_minutes", 0));
+			stop += TimeSpan.FromMinutes(_settings.GetInt("nahravadlo/config/add_schedule_minutes", 0));
 			//nastavime konec nahravani
 			dteEnd.Value = stop;
 		}
@@ -96,7 +96,7 @@ namespace Nahravadlo
 		{
 			ReformatFilename();
 
-			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || FormMain.Schedules.Exist(txtName.Text))
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;
@@ -112,7 +112,7 @@ namespace Nahravadlo
 
 		private void txtFilename_TextChanged(object sender, EventArgs e)
 		{
-			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || FormMain.Schedules.Exist(txtName.Text))
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;
@@ -122,16 +122,16 @@ namespace Nahravadlo
 
 		private void cmdAdd_Click(object sender, EventArgs e)
 		{
-			using (var job = formMain.SCHEDULES.Create(txtName.Text))
+			using (var job = FormMain.Schedules.Create(txtName.Text))
 			{
 				job.Start = dteBegin.Value;
 				job.End = dteEnd.Value;
 				job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 				job.Filename = txtFilename.Text;
-				job.UseMPEGTS = formMain.useMpegTS;
+				job.UseMPEGTS = FormMain.UseMpegTS;
 
-				var username = settings.getString("nahravadlo/config/login/username", "");
-				var password = settings.getString("nahravadlo/config/login/password", "");
+				var username = _settings.GetString("nahravadlo/config/login/username", "");
+				var password = _settings.GetString("nahravadlo/config/login/password", "");
 
 				job.Save(username, password);
 			}
@@ -141,16 +141,16 @@ namespace Nahravadlo
 
 		private void cmdAddAndClose_Click(object sender, EventArgs e)
 		{
-			using (var job = formMain.SCHEDULES.Create(txtName.Text))
+			using (var job = FormMain.Schedules.Create(txtName.Text))
 			{
 				job.Start = dteBegin.Value;
 				job.End = dteEnd.Value;
 				job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 				job.Filename = txtFilename.Text;
-				job.UseMPEGTS = formMain.useMpegTS;
+				job.UseMPEGTS = FormMain.UseMpegTS;
 
-				var username = settings.getString("nahravadlo/config/login/username", "");
-				var password = settings.getString("nahravadlo/config/login/password", "");
+				var username = _settings.GetString("nahravadlo/config/login/username", "");
+				var password = _settings.GetString("nahravadlo/config/login/password", "");
 
 				job.Save(username, password);
 			}
@@ -160,7 +160,7 @@ namespace Nahravadlo
 
 		private void cmdBrowse_Click(object sender, EventArgs e)
 		{
-			dialog.InitialDirectory = formMain.defaultDirectory;
+			dialog.InitialDirectory = FormMain.DefaultDirectory;
 			dialog.FileName = txtFilename.Text;
 			dialog.OverwritePrompt = true;
 			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
@@ -171,7 +171,7 @@ namespace Nahravadlo
 
 		private void ReformatFilename()
 		{
-			var tmp = filenameMask;
+			var tmp = _filenameMask;
 
 			tmp = tmp.Replace("%%", Char.ConvertFromUtf32(0));
 
@@ -188,12 +188,12 @@ namespace Nahravadlo
 
 			tmp = tmp.Replace("%L", Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes).ToString());
 
-			if (filenameWithoutDiacritics)
+			if (_filenameWithoutDiacritics)
 				tmp = Utils.RemoveDiacritics(tmp);
-			if (filenameLowerCase)
+			if (_filenameLowerCase)
 				tmp = tmp.ToLower();
 
-			switch (filenameSpaceReplacement)
+			switch (_filenameSpaceReplacement)
 			{
 				case 1:
 					tmp = tmp.Replace(' ', '_');
@@ -219,7 +219,7 @@ namespace Nahravadlo
 		{
 			ReformatFilename();
 
-			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || formMain.SCHEDULES.Exist(txtName.Text))
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || FormMain.Schedules.Exist(txtName.Text))
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;

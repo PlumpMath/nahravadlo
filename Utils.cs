@@ -17,12 +17,8 @@ namespace Nahravadlo
 
 		public static void ShowBubble(IWin32Window obj, ToolTipIcon toolTipIcon, String toolTipTitle, String toolTipText, int duration)
 		{
-			var tip = new ToolTip();
-			tip.IsBalloon = true;
-			tip.ToolTipIcon = toolTipIcon;
-			tip.ToolTipTitle = toolTipTitle;
-			tip.Active = false;
-			tip.Show("", obj);
+			var tip = new ToolTip {IsBalloon = true, ToolTipIcon = toolTipIcon, ToolTipTitle = toolTipTitle, Active = false};
+		    tip.Show("", obj);
 			tip.Active = true;
 			tip.Show(toolTipText, obj, duration);
 		}

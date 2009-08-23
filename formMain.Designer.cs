@@ -1,6 +1,6 @@
 namespace Nahravadlo
 {
-	partial class formMain
+	partial class FormMain
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -15,7 +15,7 @@ namespace Nahravadlo
 		{
 			if (disposing && (components != null))
 			{
-				SCHEDULES.Dispose();
+				Schedules.Dispose();
 				components.Dispose();
 			}
 			base.Dispose(disposing);
@@ -30,7 +30,7 @@ namespace Nahravadlo
 		private void InitializeComponent()
 		{
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formMain));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.lst = new System.Windows.Forms.ListBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnStopRecording = new System.Windows.Forms.Button();
@@ -339,7 +339,7 @@ namespace Nahravadlo
             this.timer.Interval = 1000;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
-            // formMain
+            // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -351,7 +351,7 @@ namespace Nahravadlo
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.MaximizeBox = false;
-            this.Name = "formMain";
+            this.Name = "FormMain";
             this.Text = "Nahrávadlo x.x.x by Arcao";
             this.Load += new System.EventHandler(this.FormMain_Load);
             this.groupBox1.ResumeLayout(false);

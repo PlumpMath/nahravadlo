@@ -5,18 +5,18 @@ namespace Nahravadlo
 {
 	internal class Channels
 	{
-		private readonly Settings option;
+		private readonly Settings _settings;
 
-		public Channels(Settings option)
+		public Channels(Settings settings)
 		{
-			this.option = option;
+			_settings = settings;
 		}
 
 		public Channel[] Get()
 		{
-			var nodes = option.getNodes("nahravadlo/programy/program");
+			var nodes = _settings.GetNodes("nahravadlo/programy/program");
 			if (nodes.Count == 0)
-				nodes = option.getNodes("nahravadlo/channels/channel");
+				nodes = _settings.GetNodes("nahravadlo/channels/channel");
 
 			if (nodes.Count == 0)
 				return new Channel[0];
@@ -77,32 +77,32 @@ namespace Nahravadlo
 		public void Set(Channel[] channels)
 		{
 			//delete old nodes
-			var nodes = option.getNodes("nahravadlo/programy");
+			var nodes = _settings.GetNodes("nahravadlo/programy");
 			if (nodes.Count != 0)
 			{
-				var n = option.getNode("nahravadlo/programy");
+				var n = _settings.GetNode("nahravadlo/programy");
 				n.ParentNode.RemoveChild(n);
 			}
 
-			nodes = option.getNodes("nahravadlo/channels");
+			nodes = _settings.GetNodes("nahravadlo/channels");
 			if (nodes.Count != 0)
 			{
-				var n = option.getNode("nahravadlo/channels");
+				var n = _settings.GetNode("nahravadlo/channels");
 				n.ParentNode.RemoveChild(n);
 			}
 
-			var node = option.createSelectNodes("nahravadlo/channels");
+			var node = _settings.CreateSelectNodes("nahravadlo/channels");
 
 			for (var i = 0; i < channels.Length; i++)
 			{
-				var chan = node.AppendChild(option.getXMLDocument().CreateElement("channel"));
+				var chan = node.AppendChild(_settings.GetXmlDocument().CreateElement("channel"));
 
 				if (channels[i].Name.Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("name")).InnerText = channels[i].Name;
+					chan.AppendChild(_settings.GetXmlDocument().CreateElement("name")).InnerText = channels[i].Name;
 				if (channels[i].Uri.Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("uri")).InnerText = channels[i].Uri;
+					chan.AppendChild(_settings.GetXmlDocument().CreateElement("uri")).InnerText = channels[i].Uri;
 				if (channels[i].Id.Length > 0)
-					chan.AppendChild(option.getXMLDocument().CreateElement("id")).InnerText = channels[i].Id;
+					chan.AppendChild(_settings.GetXmlDocument().CreateElement("id")).InnerText = channels[i].Id;
 			}
 		}
 

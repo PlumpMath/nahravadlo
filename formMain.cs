@@ -1,32 +1,31 @@
 using System;
 using System.ComponentModel;
 using System.IO;
-using System.Security.Principal;
 using System.Web;
 using System.Windows.Forms;
 using Nahravadlo.Schedule;
 
 namespace Nahravadlo
 {
-	public partial class formMain : Form
+	public partial class FormMain : Form
 	{
-		public static ComboBox comboChannels;
-		public static string defaultDirectory;
-		public static Schedules SCHEDULES;
-		public static bool useMpegTS;
-		public static string vlc;
+		public static ComboBox ComboChannels;
+		public static string DefaultDirectory;
+		public static Schedules Schedules;
+		public static bool UseMpegTS;
+		public static string Vlc;
 
-		private bool filenameLowerCase;
-		private string filenameMask = "%N.mpg";
-		private int filenameSpaceReplacement;
-		private bool filenameWithoutDiacritics;
+		private bool _filenameLowerCase;
+		private string _filenameMask = "%N.mpg";
+		private int _filenameSpaceReplacement;
+		private bool _filenameWithoutDiacritics;
 
-		private bool forceClose;
-		private string password;
-		private Settings setting;
-		private string username;
-
-		public formMain()
+		private bool _forceClose;
+		private string _password;
+		private Settings _setting;
+		private string _username;
+	    
+		public FormMain()
 		{
 			InitializeComponent();
 
@@ -34,22 +33,22 @@ namespace Nahravadlo
 			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
 
 			LoadConfig();
-			comboChannels = cmbProgram;
+			ComboChannels = cmbProgram;
 
 			TestUACElevation(true);
 
-			//if (UAC.IsVistaOrHigher() && !String.IsNullOrEmpty(username)
+			//if (UAC.IsVistaOrHigher() && !String.IsNullOrEmpty(_username)
 
-			SCHEDULES = new Schedules(vlc, defaultDirectory);
+			Schedules = new Schedules(Vlc, DefaultDirectory);
 		}
 
-		public formMain(String[] args) : this()
+		public FormMain(String[] args) : this()
 		{
 			try
 			{
 				var url = args[0];
 				//pokud se zavrel nastavovaci dialog bez ulozeni, ukoncime funkci
-				if (forceClose)
+				if (_forceClose)
 					return;
 
 				if (url == null)
@@ -59,11 +58,11 @@ namespace Nahravadlo
 				var programmName = Uri.UnescapeDataString(uri.AbsolutePath).Substring(1);
 				var qItems = HttpUtility.ParseQueryString(uri.Query);
 
-				var f = new formQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]), Utils.ParseISO8601DateTime(qItems["stop"])) {Text = string.Format("{0} - Rychlé nahrávání", Text)};
+				var f = new FormQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]), Utils.ParseISO8601DateTime(qItems["stop"])) {Text = string.Format("{0} - Rychlé nahrávání", Text)};
 				var res = f.ShowDialog(this);
 
 				if (Equals(res, DialogResult.Abort) || Equals(res, DialogResult.OK))
-					forceClose = true; {}
+					_forceClose = true; {}
 			}
 			catch {}
 		}
@@ -75,32 +74,32 @@ namespace Nahravadlo
 			if (UAC.IsAdmin())
 				return;
 
-			if (String.IsNullOrEmpty(username))
-				return;
+			//if (String.IsNullOrEmpty(_username))
+			//	return;
 
-			try
-			{
-				using (var current = WindowsIdentity.GetCurrent())
-				{
-					var account = new NTAccount(username);
-					var sid = account.Translate(typeof (SecurityIdentifier));
-
-					if (!current.User.Equals(sid))
-					{
+			//try
+			//{
+			//	using (var current = WindowsIdentity.GetCurrent())
+			//	{
+			//		var account = new NTAccount(_username);
+			//		var sid = account.Translate(typeof (SecurityIdentifier));
+            //
+			//		if (!current.User.Equals(sid))
+			//		{
 #if (!DEBUG)
 						UAC.RestartElevated(passArgs);
-						forceClose = true;
+						_forceClose = true;
 #endif
-					}
-				}
-			}
-			catch (IdentityNotMappedException) {}
+			//		}
+			//	}
+			//}
+			//catch (IdentityNotMappedException) {}}}
 		}
 
 		private void FormMain_Load(object sender, EventArgs e)
 		{
 			//pokud potrebujeme nahle ukoncit, ukoncime
-			if (forceClose)
+			if (_forceClose)
 			{
 				Close();
 				return;
@@ -116,7 +115,7 @@ namespace Nahravadlo
 		{
 			lst.Items.Clear();
 
-			foreach (var name in SCHEDULES.GetAllNames())
+			foreach (var name in Schedules.GetAllNames())
 				lst.Items.Add(name);
 		}
 
@@ -127,14 +126,14 @@ namespace Nahravadlo
 				return;
 			try
 			{
-				var job = SCHEDULES.Get(itemName);
+				var job = Schedules.Get(itemName);
 				txtName.Text = itemName;
 
 				if (job.Start != DateTime.MinValue)
 					dteBegin.Value = job.Start;
 				numLength.Value = job.Length < 1 ? 1 : job.Length;
 
-				cmbProgram.SelectedIndex = getChannelIndexFromUri(job.Uri);
+				cmbProgram.SelectedIndex = GetChannelIndexFromUri(job.Uri);
 				txtFilename.Text = job.Filename;
 
 				txtStatus.Text = job.StatusText;
@@ -147,7 +146,7 @@ namespace Nahravadlo
 			}
 		}
 
-		public int getChannelIndexFromUri(string uri)
+		public int GetChannelIndexFromUri(string uri)
 		{
 			foreach (var item in cmbProgram.Items)
 			{
@@ -161,25 +160,25 @@ namespace Nahravadlo
 		{
 			try
 			{
-				using (var job = SCHEDULES.Create(txtName.Text))
+				using (var job = Schedules.Create(txtName.Text))
 				{
 					job.Start = dteBegin.Value;
 					job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 					job.Filename = txtFilename.Text;
 
-					job.UseMPEGTS = useMpegTS;
+					job.UseMPEGTS = UseMpegTS;
 
 					job.Length = (int) numLength.Value;
-					job.Save(username, password);
+					job.Save(_username, _password);
 				}
 
 				lst.SelectedIndex = lst.Items.Add(txtName.Text);
 
-				cmdSave.Enabled = SCHEDULES.Exist(txtName.Text);
+				cmdSave.Enabled = Schedules.Exist(txtName.Text);
 
 				cmdDelete.Enabled = cmdSave.Enabled;
 
-				if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || SCHEDULES.Exist(txtName.Text))
+				if (txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || Schedules.Exist(txtName.Text))
 					cmdAdd.Enabled = false;
 				else
 					cmdAdd.Enabled = true;
@@ -201,47 +200,47 @@ namespace Nahravadlo
 			try
 			{
 				//nastavime cestu k souboru s nastavenim
-				Settings.default_filename = Path.Combine(appSettingsPath, "config.xml");
+				Settings.DefaultFilename = Path.Combine(appSettingsPath, "config.xml");
 
 				try
 				{
 					// pokud mame soubor config.xml u aplikace a neexistuje tento soubor v profilu s natavenim, zkopirujeme ho
 					// a pokusime se ho smazat u aplikace
-					if (!File.Exists(Settings.default_filename) && File.Exists(Path.Combine(Application.StartupPath, "config.xml")))
+					if (!File.Exists(Settings.DefaultFilename) && File.Exists(Path.Combine(Application.StartupPath, "config.xml")))
 					{
-						File.Copy(Path.Combine(Application.StartupPath, "config.xml"), Settings.default_filename);
+						File.Copy(Path.Combine(Application.StartupPath, "config.xml"), Settings.DefaultFilename);
 						File.Delete(Path.Combine(Application.StartupPath, "config.xml"));
 					}
 				}
 				catch {}
 
 				//pokud i presto soubor s nastavenim neexistuje, vyhodime vyjjimku
-				if (!File.Exists(Settings.default_filename))
+				if (!File.Exists(Settings.DefaultFilename))
 					throw new Exception("Nepovedlo se naèíst soubor config.xml.\n\nSoubor config.xml nebyl nalezen. Pravdìpodobnì se jedná o první spuštìní tohoto programu, proto bude zobrazen dialog pro nastavení tohoto programu.");
 
-				setting = Settings.getInstance();
+				_setting = Settings.GetInstance();
 
-				vlc = setting.getString("nahravadlo/config/vlc", "");
-				if (vlc.Length == 0)
+				Vlc = _setting.GetString("nahravadlo/config/vlc", "");
+				if (Vlc.Length == 0)
 					throw new Exception("Chyba v soubor config.xml.\n\nNení nastavena cesta k exe souboru programu VLC.\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.");
 
-				if (!File.Exists(vlc))
-					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", vlc));
+				if (!File.Exists(Vlc))
+					throw new Exception(string.Format("Chyba v soubor config.xml.\n\nCesta k VLC \"{0}\" neexistuje, nebo je adresáø (musí být soubor).\n\nPøeètìtet si prosím, jak nakonfigurovat program v souboru readme.txt.", Vlc));
 
-				username = setting.getString("nahravadlo/config/login/username", "");
-				password = setting.getString("nahravadlo/config/login/password", "");
-				defaultDirectory = setting.getString("nahravadlo/config/defaultdirectory", @"C:\");
+				_username = _setting.GetString("nahravadlo/config/login/username", "");
+				_password = _setting.GetString("nahravadlo/config/login/password", "");
+				DefaultDirectory = _setting.GetString("nahravadlo/config/defaultdirectory", @"C:\");
 
-				useMpegTS = setting.getBool("nahravadlo/config/use_mpegts", false);
+				UseMpegTS = _setting.GetBool("nahravadlo/config/use_mpegts", false);
 
-				filenameMask = setting.getString("nahravadlo/config/filename/mask", "%N.mpg");
-				filenameWithoutDiacritics = setting.getBool("nahravadlo/config/filename/without_diacritics", false);
-				filenameLowerCase = setting.getBool("nahravadlo/config/filename/lower_case", false);
-				filenameSpaceReplacement = setting.getInt("nahravadlo/config/filename/space_replacement", 0);
-				if (filenameSpaceReplacement < 0 || filenameSpaceReplacement > 3)
-					filenameSpaceReplacement = 0;
+				_filenameMask = _setting.GetString("nahravadlo/config/filename/mask", "%N.mpg");
+				_filenameWithoutDiacritics = _setting.GetBool("nahravadlo/config/filename/without_diacritics", false);
+				_filenameLowerCase = _setting.GetBool("nahravadlo/config/filename/lower_case", false);
+				_filenameSpaceReplacement = _setting.GetInt("nahravadlo/config/filename/space_replacement", 0);
+				if (_filenameSpaceReplacement < 0 || _filenameSpaceReplacement > 3)
+					_filenameSpaceReplacement = 0;
 
-				var channels = new Channels(setting).Get();
+				var channels = new Channels(_setting).Get();
 
 				cmbProgram.Items.Clear();
 				foreach (var channel in channels)
@@ -258,11 +257,11 @@ namespace Nahravadlo
 				MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
 
 				// a zobrazime dialog s nastavenim
-				var f = new formSettings {Text = ("Nastavení programu " + Text)};
+				var f = new FormSettings {Text = ("Nastavení programu " + Text)};
 				if (Equals(f.ShowDialog(this), DialogResult.OK))
 					LoadConfig();
 				else
-					forceClose = true;
+					_forceClose = true;
 			}
 		}
 
@@ -270,11 +269,11 @@ namespace Nahravadlo
 		{
 			ReformatFilename();
 
-			cmdSave.Enabled = SCHEDULES.Exist(txtName.Text);
+			cmdSave.Enabled = Schedules.Exist(txtName.Text);
 
 			cmdDelete.Enabled = cmdSave.Enabled;
 
-			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || SCHEDULES.Exist(txtName.Text))
+			if (cmbProgram.SelectedIndex < 0 || txtName.Text.Length == 0 || txtFilename.Text.Length == 0 || Schedules.Exist(txtName.Text))
 				cmdAdd.Enabled = false;
 			else
 				cmdAdd.Enabled = true;
@@ -282,7 +281,7 @@ namespace Nahravadlo
 
 		private void ReformatFilename()
 		{
-			var tmp = filenameMask;
+			var tmp = _filenameMask;
 
 			tmp = tmp.Replace("%%", Char.ConvertFromUtf32(0));
 
@@ -299,12 +298,12 @@ namespace Nahravadlo
 
 			tmp = tmp.Replace("%L", Decimal.Round((decimal) dteEnd.Value.Subtract(dteBegin.Value).TotalMinutes).ToString());
 
-			if (filenameWithoutDiacritics)
+			if (_filenameWithoutDiacritics)
 				tmp = Utils.RemoveDiacritics(tmp);
-			if (filenameLowerCase)
+			if (_filenameLowerCase)
 				tmp = tmp.ToLower();
 
-			switch (filenameSpaceReplacement)
+			switch (_filenameSpaceReplacement)
 			{
 				case 1:
 					tmp = tmp.Replace(' ', '_');
@@ -328,7 +327,7 @@ namespace Nahravadlo
 
 		private void cmdBrowse_Click(object sender, EventArgs e)
 		{
-			dialog.InitialDirectory = defaultDirectory;
+			dialog.InitialDirectory = DefaultDirectory;
 			dialog.FileName = txtFilename.Text;
 			dialog.OverwritePrompt = true;
 			dialog.Filter = "MPEG 2 soubor (*.mpg)|*.mpg|VLC soubor (*.vlc)|*.vlc";
@@ -342,15 +341,15 @@ namespace Nahravadlo
 			var itemName = (string) lst.SelectedItem;
 			try
 			{
-				using (var job = SCHEDULES.Get(itemName))
+				using (var job = Schedules.Get(itemName))
 				{
 					job.Start = dteBegin.Value;
 					job.Length = (int) numLength.Value;
-					job.UseMPEGTS = useMpegTS;
+					job.UseMPEGTS = UseMpegTS;
 					job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
 					job.Filename = txtFilename.Text;
 
-					job.Save(username, password);
+					job.Save(_username, _password);
 				}
 			}
 			catch
@@ -367,7 +366,7 @@ namespace Nahravadlo
 
 			try
 			{
-				using (var job = SCHEDULES.Get(itemName))
+				using (var job = Schedules.Get(itemName))
 				{
 					if (job.Status == JobStatus.Running)
 						job.Terminate();
@@ -377,7 +376,7 @@ namespace Nahravadlo
 
 			try
 			{
-				SCHEDULES.Remove(itemName);
+				Schedules.Remove(itemName);
 			}
 			catch {}
 
@@ -404,7 +403,7 @@ namespace Nahravadlo
 
 		private void optionMenuItem_Click(object sender, EventArgs e)
 		{
-			var f = new formSettings {Text = ("Nastavení programu " + Text)};
+			var f = new FormSettings {Text = ("Nastavení programu " + Text)};
 			f.ShowDialog(this);
 			if (f.DialogResult == DialogResult.OK)
 				LoadConfig();
@@ -414,7 +413,7 @@ namespace Nahravadlo
 
 		private void timer_Tick(object sender, EventArgs e)
 		{
-			var names = SCHEDULES.GetAllNames().ToArray();
+			var names = Schedules.GetAllNames().ToArray();
 
 			foreach (var name in names)
 			{
@@ -449,7 +448,7 @@ namespace Nahravadlo
 				{
 					if (Equals(lst.SelectedItem, item))
 					{
-						using (var job = SCHEDULES.Get(item))
+						using (var job = Schedules.Get(item))
 						{
 							txtStatus.Text = job.StatusText;
 							btnStopRecording.Enabled = (job.Status == JobStatus.Running);
@@ -457,14 +456,14 @@ namespace Nahravadlo
 					}
 				}
 
-				if (Equals(lst.SelectedItem, item) && !SCHEDULES.Exist(item))
+				if (Equals(lst.SelectedItem, item) && !Schedules.Exist(item))
 					lst.Items.Remove(item);
 			}
 		}
 
 		private void RecordNowMenuItem_Click(object sender, EventArgs e)
 		{
-			var f = new formRecordNow();
+			var f = new FormRecordNow();
 			f.ShowDialog(this);
 		}
 
@@ -517,7 +516,7 @@ namespace Nahravadlo
 		{
 			try
 			{
-				using (var job = SCHEDULES.Get((string) lst.SelectedItem))
+				using (var job = Schedules.Get((string) lst.SelectedItem))
 					job.Terminate();
 			}
 			catch {}

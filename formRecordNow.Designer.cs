@@ -1,6 +1,6 @@
 namespace Nahravadlo
 {
-	partial class formRecordNow
+	partial class FormRecordNow
 	{
 		/// <summary>
 		/// Required designer variable.

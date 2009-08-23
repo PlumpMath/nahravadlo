@@ -6,19 +6,19 @@ using Microsoft.Win32;
 
 namespace Nahravadlo
 {
-	public partial class formSettings : Form
+	public partial class FormSettings : Form
 	{
-		private readonly Settings settings;
-		public bool isCanceled;
+		private readonly Settings _settings;
+		public bool IsCanceled;
 
-		public formSettings()
+		public FormSettings()
 		{
 			InitializeComponent();
 
-			settings = Settings.getInstance();
+			_settings = Settings.GetInstance();
 
 			LoadData();
-			isCanceled = false;
+			IsCanceled = false;
 		}
 
 		private void btnHelp_Click(object sender, EventArgs e)
@@ -35,7 +35,7 @@ namespace Nahravadlo
 
 		private void btnCancel_Click(object sender, EventArgs e)
 		{
-			isCanceled = true;
+			IsCanceled = true;
 			Close();
 		}
 
@@ -55,28 +55,28 @@ namespace Nahravadlo
 		{
 			try
 			{
-				txtVLCPath.Text = settings.getString("nahravadlo/config/vlc", "");
-				txtDefaultDirectory.Text = settings.getString("nahravadlo/config/defaultdirectory", @"C:\");
-				chkUseMPEGTS.Checked = settings.getBool("nahravadlo/config/use_mpegts", false);
+				txtVLCPath.Text = _settings.GetString("nahravadlo/config/vlc", "");
+				txtDefaultDirectory.Text = _settings.GetString("nahravadlo/config/defaultdirectory", @"C:\");
+				chkUseMPEGTS.Checked = _settings.GetBool("nahravadlo/config/use_mpegts", false);
 
-				txtUsername.Text = settings.getString("nahravadlo/config/login/username", "");
-				txtPassword.Text = settings.getString("nahravadlo/config/login/password", "");
+				txtUsername.Text = _settings.GetString("nahravadlo/config/login/username", "");
+				txtPassword.Text = _settings.GetString("nahravadlo/config/login/password", "");
 
-				numAddScheduleMinutes.Value = settings.getInt("nahravadlo/config/add_schedule_minutes", 0);
+				numAddScheduleMinutes.Value = _settings.GetInt("nahravadlo/config/add_schedule_minutes", 0);
 
-				txtFilenameMask.Text = settings.getString("nahravadlo/config/filename/mask", "%N.mpg");
-				chkFilenameWithoutDiacritics.Checked = settings.getBool("nahravadlo/config/filename/without_diacritics", false);
-				chkFilenameLowerCase.Checked = settings.getBool("nahravadlo/config/filename/lower_case", false);
-				var space_replacement = settings.getInt("nahravadlo/config/filename/space_replacement", 0);
+				txtFilenameMask.Text = _settings.GetString("nahravadlo/config/filename/mask", "%N.mpg");
+				chkFilenameWithoutDiacritics.Checked = _settings.GetBool("nahravadlo/config/filename/without_diacritics", false);
+				chkFilenameLowerCase.Checked = _settings.GetBool("nahravadlo/config/filename/lower_case", false);
+				var spaceReplacement = _settings.GetInt("nahravadlo/config/filename/space_replacement", 0);
 
-				if (space_replacement < 0 || space_replacement > 3)
-					space_replacement = 0;
-				cmbSpacesReplacement.SelectedIndex = space_replacement;
+				if (spaceReplacement < 0 || spaceReplacement > 3)
+					spaceReplacement = 0;
+				cmbSpacesReplacement.SelectedIndex = spaceReplacement;
 
-				var channels = new Channels(settings).Get();
+				var channels = new Channels(_settings).Get();
 
 				if (channels.Length == 0)
-					channels = new Channels(settings).DefaultChannels;
+					channels = new Channels(_settings).DefaultChannels;
 
 				lstChannel.Items.Clear();
 				foreach (var channel in channels)
@@ -91,26 +91,26 @@ namespace Nahravadlo
 		{
 			try
 			{
-				settings.setString("nahravadlo/config/vlc", txtVLCPath.Text);
-				settings.setString("nahravadlo/config/defaultdirectory", txtDefaultDirectory.Text);
-				settings.setBool("nahravadlo/config/use_mpegts", chkUseMPEGTS.Checked);
+				_settings.SetString("nahravadlo/config/vlc", txtVLCPath.Text);
+				_settings.SetString("nahravadlo/config/defaultdirectory", txtDefaultDirectory.Text);
+				_settings.SetBool("nahravadlo/config/use_mpegts", chkUseMPEGTS.Checked);
 
-				settings.setString("nahravadlo/config/login/username", txtUsername.Text);
-				settings.setString("nahravadlo/config/login/password", txtPassword.Text);
+				_settings.SetString("nahravadlo/config/login/username", txtUsername.Text);
+				_settings.SetString("nahravadlo/config/login/password", txtPassword.Text);
 
-				settings.setInt("nahravadlo/config/add_schedule_minutes", (int) numAddScheduleMinutes.Value);
+				_settings.SetInt("nahravadlo/config/add_schedule_minutes", (int) numAddScheduleMinutes.Value);
 
-				settings.setString("nahravadlo/config/filename/mask", txtFilenameMask.Text);
-				settings.setBool("nahravadlo/config/filename/without_diacritics", chkFilenameWithoutDiacritics.Checked);
-				settings.setBool("nahravadlo/config/filename/lower_case", chkFilenameLowerCase.Checked);
-				settings.setInt("nahravadlo/config/filename/space_replacement", cmbSpacesReplacement.SelectedIndex);
+				_settings.SetString("nahravadlo/config/filename/mask", txtFilenameMask.Text);
+				_settings.SetBool("nahravadlo/config/filename/without_diacritics", chkFilenameWithoutDiacritics.Checked);
+				_settings.SetBool("nahravadlo/config/filename/lower_case", chkFilenameLowerCase.Checked);
+				_settings.SetInt("nahravadlo/config/filename/space_replacement", cmbSpacesReplacement.SelectedIndex);
 
 				var channel = new Channel[lstChannel.Items.Count];
 				lstChannel.Items.CopyTo(channel, 0);
 
-				new Channels(settings).Set(channel);
+				new Channels(_settings).Set(channel);
 
-				settings.Save();
+				_settings.Save();
 			}
 			catch (Exception e)
 			{
@@ -214,7 +214,7 @@ namespace Nahravadlo
 			if (importFile.ShowDialog() != DialogResult.OK)
 				return;
 
-			var ch = new Channels(settings);
+			var ch = new Channels(_settings);
 			var channels = ch.LoadFromFile(importFile.FileName);
 			ch.Set(channels);
 
@@ -228,7 +228,7 @@ namespace Nahravadlo
 			if (exportFile.ShowDialog() != DialogResult.OK)
 				return;
 
-			var channels = new Channels(settings);
+			var channels = new Channels(_settings);
 			channels.SaveToFile(exportFile.FileName, channels.Get());
 		}
 
@@ -244,8 +244,14 @@ namespace Nahravadlo
 						scheduleKey.SetValue(null, "URL:Schedule Protocol");
 
 						scheduleKey.SetValue("URL Protocol", "");
-						scheduleKey.CreateSubKey("DefaultIcon").SetValue(null, string.Format("{0},1", Process.GetCurrentProcess().MainModule.FileName));
-						scheduleKey.CreateSubKey("shell\\open\\command").SetValue(null, string.Format("\"{0}\" \"%1\"", Process.GetCurrentProcess().MainModule.FileName));
+						using (var subKey = scheduleKey.CreateSubKey("DefaultIcon"))
+						{
+                            if (subKey != null) subKey.SetValue(null, string.Format("{0},1", Process.GetCurrentProcess().MainModule.FileName));
+						}
+					    using (var subKey = scheduleKey.CreateSubKey("shell\\open\\command"))
+					    {
+					        if (subKey != null) subKey.SetValue(null, string.Format("\"{0}\" \"%1\"", Process.GetCurrentProcess().MainModule.FileName));
+					    }
 					}
 				}
 				MessageBox.Show(this, "Protokol schedule byl úspìšnì zaregistrován.", Text, MessageBoxButtons.OK, MessageBoxIcon.Information);

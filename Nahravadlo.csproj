@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{D666F502-604C-48CC-AD5D-024F8264A538}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -76,50 +76,50 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Channels.cs" />
-    <Compile Include="formMain.cs">
+    <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="formMain.Designer.cs">
-      <DependentUpon>formMain.cs</DependentUpon>
+    <Compile Include="FormMain.Designer.cs">
+      <DependentUpon>FormMain.cs</DependentUpon>
     </Compile>
-    <Compile Include="formQuickAdd.cs">
+    <Compile Include="FormQuickAdd.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="formQuickAdd.Designer.cs">
-      <DependentUpon>formQuickAdd.cs</DependentUpon>
+    <Compile Include="FormQuickAdd.Designer.cs">
+      <DependentUpon>FormQuickAdd.cs</DependentUpon>
     </Compile>
-    <Compile Include="formRecordNow.cs">
+    <Compile Include="FormRecordNow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="formRecordNow.Designer.cs">
-      <DependentUpon>formRecordNow.cs</DependentUpon>
+    <Compile Include="FormRecordNow.Designer.cs">
+      <DependentUpon>FormRecordNow.cs</DependentUpon>
     </Compile>
-    <Compile Include="formSettings.cs">
+    <Compile Include="FormSettings.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="formSettings.Designer.cs">
-      <DependentUpon>formSettings.cs</DependentUpon>
+    <Compile Include="FormSettings.Designer.cs">
+      <DependentUpon>FormSettings.cs</DependentUpon>
     </Compile>
     <Compile Include="Schedule\VLC\NameValueAttribute.cs" />
     <Compile Include="Schedule\Job.cs" />
     <Compile Include="Schedule\VLC\Output.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="formMain.resx">
+    <EmbeddedResource Include="FormMain.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>formMain.cs</DependentUpon>
+      <DependentUpon>FormMain.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="formQuickAdd.resx">
+    <EmbeddedResource Include="FormQuickAdd.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>formQuickAdd.cs</DependentUpon>
+      <DependentUpon>FormQuickAdd.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="formRecordNow.resx">
-      <DependentUpon>formRecordNow.cs</DependentUpon>
+    <EmbeddedResource Include="FormRecordNow.resx">
+      <DependentUpon>FormRecordNow.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="formSettings.resx">
+    <EmbeddedResource Include="FormSettings.resx">
       <SubType>Designer</SubType>
-      <DependentUpon>formSettings.cs</DependentUpon>
+      <DependentUpon>FormSettings.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -144,31 +144,24 @@
   <ItemGroup>
     <PublishFile Include="config.xml">
       <Visible>False</Visible>
-      <PublishState>Include</PublishState>
-      <IncludeHash>True</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Include</PublishState>
       <FileType>File</FileType>
     </PublishFile>
     <PublishFile Include="Nahravadlo.ico">
       <Visible>False</Visible>
-      <PublishState>Exclude</PublishState>
-      <IncludeHash>True</IncludeHash>
       <Group>
       </Group>
       <TargetPath>
       </TargetPath>
+      <PublishState>Exclude</PublishState>
       <FileType>File</FileType>
     </PublishFile>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
       <Visible>False</Visible>
       <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
@@ -182,11 +175,6 @@
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
       <Visible>False</Visible>
       <ProductName>.NET Framework 3.5</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>

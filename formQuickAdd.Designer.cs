@@ -1,6 +1,6 @@
 namespace Nahravadlo
 {
-    partial class formQuickAdd
+    partial class FormQuickAdd
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@ namespace Nahravadlo
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(formQuickAdd));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormQuickAdd));
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.dteEnd = new System.Windows.Forms.DateTimePicker();
             this.cmdBrowse = new System.Windows.Forms.Button();
