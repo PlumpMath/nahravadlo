@@ -11,9 +11,13 @@ namespace Nahravadlo
 		private readonly int _filenameSpaceReplacement;
 		private readonly bool _filenameWithoutDiacritics;
 		private readonly Settings _settings;
+		private readonly Channels _channels;
 
 		public FormQuickAdd()
 		{
+			InitializeComponent();
+			Application.EnableVisualStyles();
+
 			_settings = Settings.GetInstance();
 
 			_filenameMask = _settings.GetString("nahravadlo/config/filename/mask", "%N.mpg");
@@ -22,22 +26,23 @@ namespace Nahravadlo
 			_filenameSpaceReplacement = _settings.GetInt("nahravadlo/config/filename/space_replacement", 0);
 			if (_filenameSpaceReplacement < 0 || _filenameSpaceReplacement > 3)
 				_filenameSpaceReplacement = 0;
+
+			_channels = new Channels(_settings);
+
+			//Naplneni kanalu
+			foreach (var channel in _channels.Get())
+				cmbProgram.Items.Add(channel);
+
+			//Vyber prvniho kanalu v seznamu
+			if (cmbProgram.Items.Count > 0)
+				cmbProgram.SelectedIndex = 0;
 		}
 
 		public FormQuickAdd(string gid, string name, DateTime start, DateTime stop) : this()
 		{
-			InitializeComponent();
-			Application.EnableVisualStyles();
-
-			var channels = new Channels(_settings);
-
-			//Naplneni kanalu
-			foreach (var channel in channels.Get())
-				cmbProgram.Items.Add(channel);
-
 			//vybereme kanal
-			if (channels.ChannelFromId(gid) != null)
-				cmbProgram.Text = channels.ChannelFromId(gid).ToString();
+			if (_channels.ChannelFromId(gid) != null)
+				cmbProgram.Text = _channels.ChannelFromId(gid).ToString();
 
 			//vlozime nazev nahravani
 			txtName.Text = Utils.CorrectFilename(name);

@@ -19,6 +19,11 @@ namespace Nahravadlo
 			return Environment.OSVersion.Version.Major >= 6;
 		}
 
+		public static bool IsSevenOrHigher()
+		{
+			return Environment.OSVersion.Version.Major >= 6 && (Environment.OSVersion.Version.Major != 6 || Environment.OSVersion.Version.Minor != 0);
+		}
+
 		/// <summary>
 		/// Checks if the process is elevated
 		/// </summary>

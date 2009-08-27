@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Aplikace slouží k nahrávání IPTV za pomocí VLC.")]
+[assembly: AssemblyTitle("Nahrávadlo")]
 [assembly: AssemblyDescription("Aplikace slouží k nahrávání IPTV za pomocí VLC.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Arcao")]

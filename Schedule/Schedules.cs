@@ -34,7 +34,7 @@ namespace Nahravadlo.Schedule
 
 		public JobVersion Version
 		{
-			get { return taskService.HighestSupportedVersion == new Version(1, 2) ? JobVersion.V2 : JobVersion.V1; }
+			get { return taskService.HighestSupportedVersion >= new Version(1, 2) ? JobVersion.V2 : JobVersion.V1; }
 		}
 
 		public Job Create(string name)

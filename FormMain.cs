@@ -1,8 +1,12 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Web;
 using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Shell;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using Nahravadlo.Schedule;
 
 namespace Nahravadlo
@@ -29,6 +33,9 @@ namespace Nahravadlo
 		{
 			InitializeComponent();
 
+			if (UAC.IsSevenOrHigher())
+				TaskbarManager.Instance.ApplicationId = "Nahrávadlo";
+
 			var ver = Application.ProductVersion.Split('.');
 			Text = String.Format("Nahrávadlo {0}.{1}.{2} by Arcao", ver[0], ver[1], ver[2]);
 
@@ -46,25 +53,68 @@ namespace Nahravadlo
 		{
 			try
 			{
-				var url = args[0];
+				if (args.Length == 0)
+					return;
+
 				//pokud se zavrel nastavovaci dialog bez ulozeni, ukoncime funkci
 				if (_forceClose)
 					return;
 
-				if (url == null)
-					return;
-				var uri = new Uri(url);
-				var channelId = uri.Host;
-				var programmName = Uri.UnescapeDataString(uri.AbsolutePath).Substring(1);
-				var qItems = HttpUtility.ParseQueryString(uri.Query);
+				var url = args[0];
 
-				var f = new FormQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]), Utils.ParseISO8601DateTime(qItems["stop"])) {Text = string.Format("{0} - Rychlé nahrávání", Text)};
-				var res = f.ShowDialog(this);
+				if (url.Equals("/recordnow"))
+				{
+					var f = new FormRecordNow();
+					f.StartPosition = FormStartPosition.CenterScreen;
+					f.ShowDialog();
+					_forceClose = true;
 
-				if (Equals(res, DialogResult.Abort) || Equals(res, DialogResult.OK))
-					_forceClose = true; {}
+				} 
+				else if (url.Equals("/new"))
+				{
+					var f = new FormQuickAdd();
+					var res = f.ShowDialog(this);
+
+					if (Equals(res, DialogResult.Abort) || Equals(res, DialogResult.OK))
+						_forceClose = true;
+				}
+				else
+				{
+					var uri = new Uri(url);
+					var channelId = uri.Host;
+					var programmName = Uri.UnescapeDataString(uri.AbsolutePath).Substring(1);
+					var qItems = HttpUtility.ParseQueryString(uri.Query);
+
+					var f = new FormQuickAdd(channelId, programmName, Utils.ParseISO8601DateTime(qItems["start"]), Utils.ParseISO8601DateTime(qItems["stop"])) {Text = string.Format("{0} - Rychlé nahrávání", Text)};
+					var res = f.ShowDialog(this);
+
+					if (Equals(res, DialogResult.Abort) || Equals(res, DialogResult.OK))
+						_forceClose = true;
+				}
 			}
 			catch {}
+		}
+
+		private static void CreateWindowsSevenJobList()
+		{
+			if (!UAC.IsSevenOrHigher())
+				return;
+
+			var jumpList = JumpList.CreateJumpList();
+			jumpList.AddUserTasks(new JumpListLink(Process.GetCurrentProcess().MainModule.FileName, "Pøidat nahrávání")
+			{
+				Arguments = "/new",
+				IconReference = new IconReference(Process.GetCurrentProcess().MainModule.FileName, -2)
+			});
+
+			jumpList.AddUserTasks(new JumpListLink(Process.GetCurrentProcess().MainModule.FileName, "Okamžitì nahrávat")
+			{
+				Arguments = "/recordnow",
+				IconReference = new IconReference(Process.GetCurrentProcess().MainModule.FileName, -3)
+			});
+
+			jumpList.Refresh();
+
 		}
 
 		private void TestUACElevation(bool passArgs)
@@ -520,6 +570,11 @@ namespace Nahravadlo
 					job.Terminate();
 			}
 			catch {}
+		}
+
+		private void FormMain_Shown(object sender, EventArgs e)
+		{
+			CreateWindowsSevenJobList();
 		}
 	}
 }

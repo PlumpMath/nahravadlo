@@ -92,7 +92,7 @@ namespace Nahravadlo.Schedule
             if (String.IsNullOrEmpty(args))
                 return;
 
-            UseMPEGTS = args.Contains("dst=std{access=file,mux=ps,");
+            UseMPEGTS = !args.Contains("dst=std{access=file,mux=ps,");
 
             var r = new Regex("(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
             var m = r.Match(action.Arguments);
