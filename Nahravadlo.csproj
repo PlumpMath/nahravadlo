@@ -155,7 +155,6 @@
     <Content Include="Nahravadlo.res" />
     <None Include="Resources\record.ico" />
     <None Include="Resources\plus.ico" />
-    <None Include="Resources\1.ico" />
     <None Include="Resources\quickAddHeader.png" />
   </ItemGroup>
   <ItemGroup>
