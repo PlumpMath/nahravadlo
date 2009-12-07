@@ -18,6 +18,7 @@ namespace Nahravadlo
 			_settings = Settings.GetInstance();
 
 			LoadData();
+			tabRecordProfiles.Enabled = false;
 			IsCanceled = false;
 		}
 
@@ -327,5 +328,17 @@ namespace Nahravadlo
             if (lstChannel.SelectedItem != null)
                 ((Channel) lstChannel.SelectedItem).Id = txtChannelId.Text;
         }
+
+		private void buttonDefaultChannels_Click(object sender, EventArgs e)
+		{
+			if (MessageBox.Show(this, "Opravdu chcete vymazat seznam stávajících kanálù a vložit výchozí kanály?", this.Text, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+			{
+				var channels = new Channels(_settings).DefaultChannels;
+
+				lstChannel.Items.Clear();
+				foreach (var channel in channels)
+					lstChannel.Items.Add(channel);
+			}
+		}
 	}
 }
