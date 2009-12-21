@@ -57,7 +57,7 @@ namespace Nahravadlo
 
             //parameters = string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", ((Channel) cmbChannel.SelectedItem).getUri(), txtFilename.Text);
             string parameters = string.Format("{0} :sout=#duplicate{{{1}dst=std{{access=file,mux={2},url=\"{3}\"}}}}",
-                                              ((Channel) cmbChannel.SelectedItem).getUri(), dst, mux, txtFilename.Text);
+                                              ((Channel) cmbChannel.SelectedItem).Uri, dst, mux, txtFilename.Text);
 
             //MessageBox.Show(parameters);
 

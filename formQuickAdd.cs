@@ -127,7 +127,7 @@ namespace Nahravadlo
             {
                 job.Start = dteBegin.Value;
                 job.End = dteEnd.Value;
-                job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+                job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
                 job.Filename = txtFilename.Text;
                 job.UseMPEGTS = formMain.useMpegTS;
 
@@ -146,7 +146,7 @@ namespace Nahravadlo
             {
                 job.Start = dteBegin.Value;
                 job.End = dteEnd.Value;
-                job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+                job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
                 job.Filename = txtFilename.Text;
                 job.UseMPEGTS = formMain.useMpegTS;
 

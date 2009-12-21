@@ -99,7 +99,7 @@ namespace Nahravadlo
             {
                 var r =
                     new Regex(
-                        "(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
+                        "(?<uri>((udp(stream)?|rtp|http):(//)?([^\\s]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
                 Match m = r.Match(task.Parameters);
                 return m.Groups["uri"].Value;
             }
@@ -168,7 +168,7 @@ namespace Nahravadlo
             {
                 var r =
                     new Regex(
-                        "(?<uri>((udp(stream)?|rtp):(//)?([0-9:@.]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
+                        "(?<uri>((udp(stream)?|rtp|http):(//)?([^\\s]+)))?.*(:demuxdump-file=\"|:sout=#duplicate{dst=std{access=file,mux=ps,(url|dst)=\")(?<filename>([^\"]+))?(\"|\"}})");
                 Match m = r.Match(task.Parameters);
                 return m.Groups["filename"].Value;
             }
@@ -250,7 +250,7 @@ namespace Nahravadlo
                     case JobStatus.Terminated:
                         return "Neúspìšnì vykonáno";
                     default:
-                        return "";
+                        return "Neznámý";
                 }
             }
         }
@@ -310,7 +310,7 @@ namespace Nahravadlo
 
             // HACK chtelo by tro moznost nastavovat prioritu uzivatelsky
             task.Priority = ProcessPriorityClass.High;
-            task.Parameters = useMPEGTS ? string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", uri, filename) : string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,url=\"{1}\"}}}}", uri, filename);
+            task.Parameters = useMPEGTS ? string.Format("{0} :demux=dump :demuxdump-file=\"{1}\"", uri, filename) : string.Format("{0} :sout=#duplicate{{dst=std{{access=file,mux=ps,dst=\"{1}\"}}}}", uri, filename);
         }
 
         /// <summary>

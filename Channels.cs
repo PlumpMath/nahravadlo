@@ -44,7 +44,7 @@ namespace Nahravadlo
             Channel[] ch = getChannels();
 
             for (int i = 0; i < ch.Length; i++)
-                if (ch[i].getUri() == uri) return ch[i];
+                if (ch[i].Uri == uri) return ch[i];
             return null;
         }
 
@@ -55,7 +55,7 @@ namespace Nahravadlo
 
             for (int i = 0; i < ch.Length; i++)
             {
-                string[] chIds = ch[i].getId().Split(',');
+                string[] chIds = ch[i].Id.Split(',');
                 foreach (string chId in chIds)
                 {
                     if (chId.Trim().ToLower().CompareTo(id) == 0)
@@ -89,12 +89,12 @@ namespace Nahravadlo
             {
                 XmlNode chan = node.AppendChild(option.getXMLDocument().CreateElement("channel"));
 
-                if (channels[i].getName().Length > 0)
-                    chan.AppendChild(option.getXMLDocument().CreateElement("name")).InnerText = channels[i].getName();
-                if (channels[i].getUri().Length > 0)
-                    chan.AppendChild(option.getXMLDocument().CreateElement("uri")).InnerText = channels[i].getUri();
-                if (channels[i].getId().Length > 0)
-                    chan.AppendChild(option.getXMLDocument().CreateElement("id")).InnerText = channels[i].getId();
+                if (channels[i].Name.Length > 0)
+                    chan.AppendChild(option.getXMLDocument().CreateElement("name")).InnerText = channels[i].Name;
+                if (channels[i].Uri.Length > 0)
+                    chan.AppendChild(option.getXMLDocument().CreateElement("uri")).InnerText = channels[i].Uri;
+                if (channels[i].Id.Length > 0)
+                    chan.AppendChild(option.getXMLDocument().CreateElement("id")).InnerText = channels[i].Id;
             }
         }
 
@@ -151,10 +151,10 @@ namespace Nahravadlo
             {
                 XmlNode track = node.AppendChild(exp.CreateElement("track"));
 
-                track.AppendChild(exp.CreateElement("location")).InnerText = channels[i].getUri();
-                if (channels[i].getId().Length > 0)
-                    track.AppendChild(exp.CreateElement("identifier")).InnerText = channels[i].getId();
-                track.AppendChild(exp.CreateElement("title")).InnerText = channels[i].getName();
+                track.AppendChild(exp.CreateElement("location")).InnerText = channels[i].Uri;
+                if (channels[i].Id.Length > 0)
+                    track.AppendChild(exp.CreateElement("identifier")).InnerText = channels[i].Id;
+                track.AppendChild(exp.CreateElement("title")).InnerText = channels[i].Name;
             }
 
             if (!exp.OuterXml.Contains("<?xml"))
@@ -181,35 +181,22 @@ namespace Nahravadlo
 
     internal class Channel
     {
-        private readonly string id;
-        private readonly string name;
-        private readonly string uri;
-
         public Channel(string name, string uri, string id)
         {
-            this.name = name;
-            this.uri = uri;
-            this.id = id;
+            Name = name;
+            Uri = uri;
+            Id = id;
         }
 
-        public string getName()
-        {
-            return name;
-        }
+        public string Name { get; set; }
 
-        public string getUri()
-        {
-            return uri;
-        }
+        public string Uri { get; set; }
 
-        public string getId()
-        {
-            return id;
-        }
+        public string Id { get; set; }
 
         public override string ToString()
         {
-            return getName();
+            return Name;
         }
     }
 

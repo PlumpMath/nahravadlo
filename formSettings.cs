@@ -142,7 +142,6 @@ namespace Nahravadlo
 
             if (channel == null)
             {
-                btnChannelSave.Enabled = false;
                 btnChannelDelete.Enabled = false;
 
                 btnChannelUp.Enabled = false;
@@ -158,7 +157,6 @@ namespace Nahravadlo
                 return;
             }
             
-            btnChannelSave.Enabled = true;
             btnChannelDelete.Enabled = true;
 
             txtChannelName.Enabled = true;
@@ -168,9 +166,9 @@ namespace Nahravadlo
             btnChannelUp.Enabled = (lstChannel.SelectedIndex > 0);
             btnChannelDown.Enabled = (lstChannel.SelectedIndex < lstChannel.Items.Count - 1);
 
-            txtChannelName.Text = channel.getName();
-            txtChannelUri.Text = channel.getUri();
-            txtChannelId.Text = channel.getId();
+            txtChannelName.Text = channel.Name;
+            txtChannelUri.Text = channel.Uri;
+            txtChannelId.Text = channel.Id;
         }
 
         private void btnChannelDelete_Click(object sender, EventArgs e)
@@ -186,11 +184,6 @@ namespace Nahravadlo
                 else if (lstChannel.Items.Count == selectedIndex)
                     lstChannel.SelectedIndex = lstChannel.Items.Count - 1;
             }
-        }
-
-        private void btnChannelSave_Click(object sender, EventArgs e)
-        {
-            lstChannel.Items[lstChannel.SelectedIndex] = new Channel(txtChannelName.Text, txtChannelUri.Text, txtChannelId.Text);
         }
 
         private void btnChannelAdd_Click(object sender, EventArgs e)
@@ -317,5 +310,30 @@ namespace Nahravadlo
             catch {}
             btnUnregisterScheduleProtocol.Enabled = false;
         }
+
+        private void txtChannelName_TextChanged(object sender, EventArgs e)
+        {
+            if (lstChannel.SelectedItem != null)
+            {
+                ((Channel)lstChannel.SelectedItem).Name = txtChannelName.Text;
+                //obnoveni nazvu stanice v listboxu
+                lstChannel.DisplayMember = "";
+                lstChannel.DisplayMember = "Name";
+            }
+        }
+
+        private void txtChannelUri_TextChanged(object sender, EventArgs e)
+        {
+            if (lstChannel.SelectedItem != null)
+                ((Channel)lstChannel.SelectedItem).Uri = txtChannelUri.Text;
+        }
+
+        private void txtChannelId_TextChanged(object sender, EventArgs e)
+        {
+            if (lstChannel.SelectedItem != null)
+                ((Channel)lstChannel.SelectedItem).Id = txtChannelId.Text;
+        }
+
+
     }
 }

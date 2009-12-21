@@ -107,7 +107,7 @@ namespace Nahravadlo
         {
             foreach (Object item in cmbProgram.Items)
             {
-                if (((Channel) item).getUri().CompareTo(uri) == 0)
+                if (((Channel) item).Uri.CompareTo(uri) == 0)
                     return cmbProgram.FindString(item.ToString());
             }
             return -1;
@@ -120,7 +120,7 @@ namespace Nahravadlo
                 using (Job job = SCHEDULES.create(txtName.Text))
                 {
                     job.Start = dteBegin.Value;
-                    job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+                    job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
                     job.Filename = txtFilename.Text;
 
                     job.UseMPEGTS = useMpegTS;
@@ -312,7 +312,7 @@ namespace Nahravadlo
                     job.Start = dteBegin.Value;
                     job.Length = (int) numLength.Value;
                     job.UseMPEGTS = useMpegTS;
-                    job.Uri = ((Channel) cmbProgram.SelectedItem).getUri();
+                    job.Uri = ((Channel) cmbProgram.SelectedItem).Uri;
                     job.Filename = txtFilename.Text;
 
                     job.SetUsernameAndPassword(username, password);
